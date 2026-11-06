@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\EnrolementTotpController;
 use App\Http\Controllers\Auth\NouveauMotDePasseController;
+use App\Http\Middleware\ExigerCapacite;
 use App\Livewire\Accueil;
 use App\Livewire\Compte;
 use App\Livewire\Consommation;
@@ -70,15 +71,18 @@ Route::middleware('auth')->group(function () {
         Route::livewire('/consommation/sessions', Sessions::class)->name('consommation.sessions');
 
         Route::livewire('/poles', Poles::class)->name('poles');
-        Route::livewire('/vault', Vault::class)->name('vault');
+        Route::livewire('/vault', Vault::class)->name('vault')->middleware(ExigerCapacite::class.':coffre');
 
         // Messagerie avec les managers (ADR 0008) : désactivable par HERMES_OS_MESSAGERIE=false.
         if (config('hermes-os.messagerie')) {
-            Route::livewire('/messagerie', Messagerie::class)->name('messagerie');
+            Route::livewire('/messagerie', Messagerie::class)->name('messagerie')
+                ->middleware(ExigerCapacite::class.':messagerie');
             Route::livewire('/messagerie/{interlocuteur}', Messagerie::class)->name('messagerie.interlocuteur')
-                ->where('interlocuteur', '[a-z0-9][a-z0-9_-]{0,63}');
+                ->where('interlocuteur', '[a-z0-9][a-z0-9_-]{0,63}')
+                ->middleware(ExigerCapacite::class.':messagerie');
             Route::livewire('/messagerie/{interlocuteur}/{conversation}', Messagerie::class)->name('messagerie.conversation')
-                ->where(['interlocuteur' => '[a-z0-9][a-z0-9_-]{0,63}', 'conversation' => 'c_[a-f0-9]{16}']);
+                ->where(['interlocuteur' => '[a-z0-9][a-z0-9_-]{0,63}', 'conversation' => 'c_[a-f0-9]{16}'])
+                ->middleware(ExigerCapacite::class.':messagerie');
         }
         Route::livewire('/poles/{profil}', Profil::class)->name('poles.profil')
             ->where('profil', '[a-z0-9][a-z0-9_-]{0,63}');

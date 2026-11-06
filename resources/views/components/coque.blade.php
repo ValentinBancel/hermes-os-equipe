@@ -6,6 +6,7 @@
 --}}
 @props(['actif', 'releve' => null, 'accueil' => false])
 @php
+    use App\Interface\Capacites;
     use App\Interface\Presence;
 
     $liens = [
@@ -13,9 +14,11 @@
         ['planifiees', 'Planifiées', route('planifiees')],
         ['consommation', 'Consommation', route('consommation')],
         ['poles', 'Pôles', route('poles')],
-        ['vault', 'Coffre', route('vault')],
     ];
-    if (config('hermes-os.messagerie')) {
+    if (Capacites::coffre()) {
+        $liens[] = ['vault', 'Coffre', route('vault')];
+    }
+    if (Capacites::messagerie()) {
         $liens[] = ['messagerie', 'Messagerie', route('messagerie')];
     }
     $client = config('hermes-os.client');
