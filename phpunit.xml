@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <!-- Clé de test publique (aucune donnée réelle) : les tests ne dépendent pas d'un .env. -->
+        <env name="APP_KEY" value="base64:aGVybWVzLW9zLWNsZS1kZS10ZXN0LTMyLW9jdGV0cyE="/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <!-- force : un CACHE_STORE=file du shell ferait persister le throttle entre exécutions (429). -->
+        <env name="CACHE_STORE" value="array" force="true"/>
+        <server name="CACHE_STORE" value="array" force="true"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="DB_URL" value=""/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="SESSION_SECURE_COOKIE" value="false"/>
+        <env name="HERMES_OS_IP_ALLOWLIST" value=""/>
+        <!-- force : un HERMES_PONT_DRIVER du shell ou de la CI ne change pas le pilote des tests (Laravel lit $_SERVER puis $_ENV). -->
+        <env name="HERMES_PONT_DRIVER" value="demo" force="true"/>
+        <server name="HERMES_PONT_DRIVER" value="demo" force="true"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="NIGHTWATCH_ENABLED" value="false"/>
+    </php>
+</phpunit>

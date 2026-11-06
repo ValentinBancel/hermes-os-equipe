@@ -1,0 +1,71 @@
+{
+    "description": "Contrat des réponses du pont (clés exactes). Vérifié par pont/tests/test_contrat.py (pont réel sur la fixture) et tests/Feature/Hermes/ContratTest.php (DemoClient). Chemin : « » = racine, « x[] » = chaque élément de la liste x, « a.b » = objet imbriqué.",
+    "types": {
+        "vault": {
+            "": ["profils", "elements"],
+            "elements[]": ["profil", "id", "kind", "label", "origin", "identifier_type", "identifier", "has_otp", "created_at"]
+        },
+        "conversation_messagerie": {"etapes_en_cours": "liste de chaînes (verbe + objet, ex. « utilise : fichiers »), jamais d'objets"}
+    },
+    "routes": {
+        "sante": {
+            "": ["ok", "version_pont", "horodatage", "verifications"],
+            "verifications[]": ["nom", "ok", "detail"]
+        },
+        "gateway": {
+            "": ["etat", "processus_actif", "agents_actifs", "mis_a_jour_a", "version", "raison_arret", "plateformes", "profils_servis"],
+            "plateformes[]": ["nom", "etat", "code_erreur", "message_erreur", "attention", "mis_a_jour_a", "reessai_depuis"]
+        },
+        "a_decider": {
+            "": ["elements"],
+            "elements[]": ["type", "conversation", "interlocuteur", "nom", "titre", "texte", "cree_a"]
+        },
+        "planifiees": {
+            "": ["taches"],
+            "taches[]": ["id", "nom", "planning", "type_planning", "actif", "etat", "en_pause_depuis", "raison_pause", "prochaine_execution", "derniere_execution", "dernier_statut", "derniere_erreur", "erreur_livraison", "echecs_consecutifs", "livraison"]
+        },
+        "planifiee": {
+            "": ["id", "nom", "planning", "type_planning", "actif", "etat", "en_pause_depuis", "raison_pause", "prochaine_execution", "derniere_execution", "dernier_statut", "derniere_erreur", "erreur_livraison", "echecs_consecutifs", "livraison", "historique", "sorties"],
+            "historique[]": ["id", "source", "statut", "demarre_a", "termine_a", "erreur", "livraison", "prevue_a"],
+            "sorties[]": ["nom", "octets"]
+        },
+        "sortie": {
+            "": ["tache", "nom", "tronque", "contenu"]
+        },
+        "consommation": {
+            "": ["periode_jours", "du", "au", "total", "par_jour", "par_profil", "par_modele", "par_source", "note"],
+            "total": ["entree", "sortie", "cache_lecture", "cache_ecriture", "raisonnement", "total", "cout_estime_usd", "cout_reel_usd", "sessions"],
+            "par_jour[]": ["date", "entree", "sortie", "cache_lecture", "cache_ecriture", "raisonnement", "total", "cout_estime_usd", "cout_reel_usd", "sessions"],
+            "par_profil[]": ["profil", "entree", "sortie", "cache_lecture", "cache_ecriture", "raisonnement", "total", "cout_estime_usd", "cout_reel_usd", "sessions"],
+            "par_modele[]": ["modele", "entree", "sortie", "cache_lecture", "cache_ecriture", "raisonnement", "total", "cout_estime_usd", "cout_reel_usd", "sessions"],
+            "par_source[]": ["source", "entree", "sortie", "cache_lecture", "cache_ecriture", "raisonnement", "total", "cout_estime_usd", "cout_reel_usd", "sessions"]
+        },
+        "sessions": {
+            "": ["sessions"],
+            "sessions[]": ["id", "profil", "source", "modele", "titre", "demarre_a", "termine_a", "derniere_activite", "duree_secondes", "fin", "messages", "outils", "tokens", "cout_estime_usd"]
+        },
+        "poles": {
+            "": ["poles", "profils", "skills_communs"],
+            "poles[]": ["pole", "lead", "executants", "auditeurs", "support"],
+            "profils[]": ["profil", "pole", "role", "description", "modele", "skills_actifs"]
+        },
+        "erreurs": {
+            "": ["heures", "comptes", "entrees"],
+            "comptes": ["erreurs", "avertissements"],
+            "entrees[]": ["quand", "niveau", "profil", "module", "message"]
+        },
+        "messagerie": {
+            "": ["interlocuteurs", "conversations"],
+            "interlocuteurs[]": ["id", "nom", "pole", "modele", "en_cours"],
+            "conversations[]": ["id", "interlocuteur", "titre", "cree_a", "modifie_a", "statut"]
+        },
+        "vault": {
+            "": ["profils", "elements"],
+            "elements[]": ["profil", "id", "kind", "label", "origin", "identifier_type", "identifier", "has_otp", "created_at"]
+        },
+        "conversation_messagerie": {
+            "": ["conversation", "evenements", "brouillon", "en_cours", "etapes_en_cours"],
+            "conversation": ["id", "interlocuteur", "titre", "cree_a", "modifie_a", "statut"]
+        }
+    }
+}

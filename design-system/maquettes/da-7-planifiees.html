@@ -1,0 +1,185 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Planifiées — hermes-os</title><style>
+@font-face{font-family:Outfit;src:url(fonts/outfit-latin-wght.woff2) format('woff2');font-weight:100 900;font-display:block}
+@font-face{font-family:'JetBrains Mono';src:url(fonts/jetbrains-mono-regular.woff2) format('woff2');font-weight:400;font-display:block}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--indigo:#253081;--encre:#1B1B2F;--gris:#4A4B60;--fil:#E1E4F1;--ok:#14704B;--ko:#B02F2F}
+html{background:#F5F6FB}
+body{position:relative;min-height:100vh;font-family:Outfit,sans-serif;color:var(--encre);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;overflow-x:hidden}
+.bgwrap{position:absolute;inset:0 0 auto 0;height:520px;overflow:hidden;pointer-events:none;z-index:0}
+.band{position:absolute;top:0;left:50%;width:2600px;margin-left:-1300px;height:400px;border-radius:0 0 50% 50%/0 0 100% 100%;background:linear-gradient(90deg,#BCCAF4,#A8BBF0 50%,#BCCAF4)}
+.page{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:20px 24px 72px}
+a{color:inherit;text-decoration:none}
+.glass{background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.85)}
+/* barre haute */
+.bar{display:flex;align-items:center;gap:32px;height:64px;padding:0 24px;border-radius:20px}
+.brand{display:flex;align-items:baseline;gap:12px;white-space:nowrap}
+.wm{font-weight:600;font-size:22px;color:var(--indigo)}
+.pour{font-size:14px;color:var(--gris)}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav a{padding:8px 12px;border-radius:999px;font-size:15px;color:var(--gris);white-space:nowrap}
+.nav a.on{color:var(--indigo);font-weight:600;background:rgba(37,48,129,.13)}
+.pres{display:flex;align-items:center;gap:10px;margin-left:8px;white-space:nowrap}
+.pile{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--gris)}
+.pile .vert{width:8px;height:8px;border-radius:50%;background:#1F9D6B}
+.pile .av{width:22px;height:22px;font-size:10px;margin-left:-6px}.pile .av:first-child{margin-left:0}
+.moi{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:500;background:var(--indigo);color:#fff}
+.moi.on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--indigo)}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:500;color:var(--indigo);background:#fff;border:1px solid #fff;box-shadow:0 0 0 1px rgba(37,48,129,.18);margin-left:-6px}
+.av:first-child{margin-left:0}
+.menu{display:none}
+/* bloc du jour */
+body.int .bgwrap{height:230px}body.int .band{height:150px}
+.jour{margin-top:28px;border-radius:28px;padding:48px 56px 44px}
+.eyebrow{font-size:15px;color:var(--gris)}
+h1 span{white-space:nowrap}h1 i{font-style:normal}
+h1{font-weight:600;font-size:46px;line-height:1.1;margin-top:10px;color:var(--encre)}
+.etat{margin-top:12px;font-size:16px;color:var(--gris)}
+.etat a{color:var(--ko);text-decoration:underline;text-underline-offset:3px}
+.compt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:36px;border-top:1px solid rgba(37,48,129,.14);padding-top:28px}
+.compt div+div{padding-left:32px;border-left:1px solid rgba(37,48,129,.14)}
+.compt b{display:block;font-weight:600;font-size:44px;line-height:1;color:var(--indigo)}
+.compt span{display:block;margin-top:6px;font-size:15px;color:var(--gris)}
+.frise{position:relative;height:32px;margin-top:36px}
+.frise .ligne{position:absolute;left:0;right:0;top:11px;height:2px;background:rgba(37,48,129,.2);border-radius:2px}
+.pt{position:absolute;top:6px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--indigo)}
+.pt.echec{background:var(--ko)}
+.pt.prevu{background:#fff;box-shadow:inset 0 0 0 2px var(--indigo)}
+.now{position:absolute;top:0;width:2px;height:24px;margin-left:-1px;background:var(--indigo)}
+.now i{position:absolute;top:34px;left:50%;transform:translateX(-50%);font-style:normal;font-size:13px;font-weight:500;color:var(--indigo);white-space:nowrap}
+.heures{position:relative;height:18px;margin-top:30px;font-size:13.5px;color:var(--gris);white-space:nowrap}
+.heures span{position:absolute;top:0}
+/* sections */
+.grille{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:96px;row-gap:64px;margin-top:72px}
+h2{font-weight:600;font-size:22px;color:var(--encre);padding-bottom:14px;border-bottom:1px solid var(--fil)}
+.l{display:flex;align-items:center;gap:20px;padding:18px 0;border-bottom:1px solid var(--fil)}
+.l .t{flex:1;min-width:0}
+.l .t b{display:block;font-weight:500;font-size:16px;line-height:1.35}
+.l .t small{display:block;font-size:14px;color:var(--gris);margin-top:2px}
+.l time{font-size:15px;color:var(--gris);white-space:nowrap}
+.rouge{color:var(--ko)!important}
+.pill{flex:none;padding:7px 16px;border-radius:999px;border:1px solid rgba(37,48,129,.35);color:var(--indigo);font-size:14px;font-weight:500;background:transparent}
+.pill.plein{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+.p .h{width:56px;font-size:16px;color:var(--indigo);font-weight:500;flex:none}
+.p .t b{font-weight:400}
+.big{display:flex;align-items:baseline;gap:12px;padding-top:22px}
+.big b{font-weight:600;font-size:52px;line-height:1;color:var(--indigo)}
+.big span{font-size:15px;color:var(--gris)}
+.bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:14px;align-items:end;height:112px;margin-top:22px}
+.bars div{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:8px}
+.bars i{display:block;width:100%;max-width:28px;border-radius:6px 6px 0 0;background:#C9CEF2}
+.bars div:last-child i{background:var(--indigo)}
+.jours{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:14px;margin-top:8px;font-size:12.5px;color:var(--gris);text-align:center}
+.det{margin-top:20px;font-size:14.5px;color:var(--gris)}
+/* pages intérieures */
+.titre{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-top:84px}
+h1.u{font-size:40px;margin:0}
+.sous{font-size:16px;color:var(--gris)}
+.btn{padding:11px 24px;border-radius:999px;background:var(--indigo);color:#fff;font-weight:500;font-size:15px;white-space:nowrap}
+.btn.fin{padding:8px 18px;font-size:14px}
+/* planifiées */
+.liste{margin-top:28px}
+.tp{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,2.1fr) minmax(0,1.5fr) minmax(0,1.4fr) 120px;gap:24px;align-items:center;padding:15px 0;border-bottom:1px solid var(--fil);font-size:15px}
+.tp.th{font-size:13.5px;color:var(--gris);padding:0 0 12px;border-bottom-color:var(--fil)}
+.tp .n b{display:block;font-weight:500;font-size:16px}
+.tp .n small{display:block;font-size:13.5px;color:var(--gris);margin-top:1px}
+.tp .g{color:var(--gris)}
+.tp .d b{font-weight:500;display:block}
+.tp .d small{display:block;font-size:13.5px;color:var(--gris)}
+.tp .d.ko b,.tp .d.ko small{color:var(--ko)}
+.tp .s b::before{content:"Prochaine · ";color:var(--gris);display:none}
+.tp .d.ok b::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:8px;vertical-align:middle}
+.tp .d.ko b::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ko);margin-right:8px;vertical-align:middle}
+.tp .act{display:flex;gap:16px;justify-content:flex-end;font-size:14px;color:var(--indigo);font-weight:500;opacity:0;transition:opacity .15s}
+.tp:hover .act,.tp:focus-within .act{opacity:1}
+.tp.susp .n b,.tp.susp .g,.tp.susp .d b,.tp.susp .d small,.tp.susp .n small{color:#8A8CA0}
+.tp.susp .d b::before{background:#B9BBCB}
+.tag{display:inline-block;margin-left:10px;padding:1px 10px;border-radius:999px;border:1px solid #C5C7D6;color:#6B6D82;font-size:12.5px;font-weight:400;vertical-align:2px}
+/* compte */
+.duo{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:72px;margin-top:32px;align-items:start}
+.sec+.sec{margin-top:56px}
+.sec h2{display:flex;align-items:baseline;justify-content:space-between}
+.sec h2 .btn{font-size:14px;padding:8px 18px}
+.kv{display:grid;grid-template-columns:200px minmax(0,1fr) auto;gap:16px;align-items:baseline;padding:16px 0;border-bottom:1px solid var(--fil);font-size:16px}
+.kv>span:first-child{color:var(--gris);font-size:15px}
+.kv a{color:var(--indigo);font-weight:500;font-size:14.5px}
+.kv .ok{color:var(--ok);font-weight:500}
+.kv small{color:var(--gris);font-size:14px}
+.cp{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--fil)}
+.who{display:flex;align-items:center;gap:14px;min-width:0}
+.who .av{flex:none;margin:0;width:36px;height:36px;font-size:13px;background:#EEF0FA;box-shadow:none;border-color:#EEF0FA;position:relative;overflow:visible}
+.who .av.on::after{content:"";position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:50%;background:#1F9D6B;border:2px solid #F5F6FB}
+.who div{min-width:0}
+.who b{display:block;font-weight:500;font-size:16px}
+.who small{display:block;font-size:13.5px;color:var(--gris);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cp time{font-size:14.5px;color:var(--gris);white-space:nowrap}
+.cp time.on{color:var(--ok);font-weight:500}
+.panel{border-radius:28px;padding:32px}
+.panel h2{border:0;padding:0;font-size:22px}
+.inst{margin-top:16px;padding-bottom:22px;border-bottom:1px solid rgba(37,48,129,.14)}
+.inst b{display:block;font-weight:600;font-size:17px}
+.inst span{display:block;font-size:14px;color:var(--gris);margin-top:2px}
+.inst .ok{color:var(--ok);font-weight:500}
+.panel h3{font-weight:600;font-size:17px;margin-top:24px}
+ol{list-style:none;counter-reset:s;margin-top:16px;display:grid;gap:14px}
+ol li{counter-increment:s;display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;font-size:15px;line-height:1.4}
+ol li::before{content:counter(s);font-weight:600;color:var(--indigo)}
+.cmd{margin-top:22px;padding:14px 16px;border-radius:14px;background:#fff;border:1px solid var(--fil);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5;word-break:break-all;color:var(--encre)}
+.code{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:20px}
+.code b{font-weight:600;font-size:30px;letter-spacing:.04em;color:var(--indigo);white-space:nowrap}
+.code span{font-size:14px;color:var(--gris);white-space:nowrap}
+.mact{display:none}
+@media (max-width:1100px){
+ .tp{grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) minmax(0,1.4fr) minmax(0,1.2fr);gap:20px}
+ .tp .act{grid-column:1 / -1;justify-content:flex-start;opacity:1;margin-top:-6px}
+ .tp.th .act{display:none}
+}
+@media (max-width:900px){
+ .grille{grid-template-columns:minmax(0,1fr);row-gap:48px;margin-top:48px}
+ .s-err{order:1}.s-dec{order:2}.s-pro{order:3}.s-tok{order:4}
+ .duo{grid-template-columns:minmax(0,1fr);gap:56px}
+}
+@media (max-width:760px){
+ .page{padding:12px 16px 56px}
+ .bgwrap{height:420px}.band{height:330px}
+ .bar{height:56px;padding:0 12px 0 16px;gap:10px;border-radius:16px}
+ .nav,.pile{display:none}
+ .pres{margin-left:auto;order:3}
+ .brand{gap:8px}.wm{font-size:20px}.pour{font-size:13px}
+ .menu{display:block;position:relative;order:2;margin-left:auto}
+ .pres{margin-left:0}
+ .menu summary{list-style:none;cursor:pointer;padding:8px 14px;border-radius:999px;border:1px solid rgba(37,48,129,.3);color:var(--indigo);font-size:14px;font-weight:500}
+ .menu summary::-webkit-details-marker{display:none}
+ .menu nav{position:absolute;right:-48px;top:46px;width:220px;padding:10px;border-radius:16px;display:grid;background:rgba(255,255,255,.92)}
+ .menu nav a{padding:10px 12px;border-radius:10px;font-size:15px;color:var(--gris)}
+ .menu nav a.on{color:var(--indigo);font-weight:600;background:rgba(37,48,129,.08)}
+ .jour{margin-top:16px;border-radius:22px;padding:26px 20px 24px}
+ h1{font-size:28px}h1 span{display:block}h1 .dot{display:none}
+ .etat{font-size:14.5px}
+ .compt{margin-top:22px;padding-top:18px}
+ .compt div+div{padding-left:12px}
+ .compt b{font-size:30px}.compt span{font-size:13px}
+ .frise{margin-top:24px}
+ body.int .bgwrap{height:200px}body.int .band{height:110px}
+ .titre{margin-top:64px;flex-direction:column;align-items:flex-start;gap:4px}h1.u{font-size:32px}
+ .tp.th{display:none}
+ .tp{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 16px;padding:16px 0}
+ .tp .n{grid-column:1 / -1}
+ .tp .f{grid-column:1 / -1;font-size:14.5px}
+ .tp .act{grid-column:1 / -1;margin-top:4px;font-size:14px}
+ .tp .d{font-size:14.5px}
+ .tp .s{grid-column:2;grid-row:3}.tp .s b::before{display:inline}.tp .d:not(.s){grid-column:1;grid-row:3}
+ .tp .d small{font-size:13px}
+ .kv{grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:14px 0}
+ .kv>span:first-child{grid-column:1 / -1;font-size:13.5px}
+ .cp{grid-template-columns:minmax(0,1fr)}
+ .cp time{padding-left:50px;margin-top:-10px}
+ .panel{padding:24px 20px;border-radius:22px}
+ .code b{font-size:26px}
+ .big b{font-size:44px}
+ .l{gap:12px}
+}
+</style></head>
+<body class="int"><div class="bgwrap"><div class="band"></div></div><div class="page"><header class="bar glass"><a class="brand" href="da-7-accueil.html"><span class="wm">hermes-os</span><span class="pour">pour Exemple</span></a>
+<nav class="nav" aria-label="Navigation"><a href="da-7-accueil.html">Accueil</a><a href="da-7-planifiees.html" class=on>Planifiées</a><a href="#">Consommation</a><a href="#">Pôles</a><a href="#">Coffre</a><a href="#">Messagerie</a></nav><div class="pres"><div class="pile" title="Thomas Roche, Inès Diallo, vous"><i class="vert"></i><span>3&nbsp;connectés</span></div><a class="moi" href="da-7-compte.html" title="Mon compte · Camille Martin" aria-label="Mon compte">CM</a></div>
+<details class="menu"><summary>Menu</summary><nav class="glass"><a href="da-7-accueil.html">Accueil</a><a href="da-7-planifiees.html" class=on>Planifiées</a><a href="#">Consommation</a><a href="#">Pôles</a><a href="#">Coffre</a><a href="#">Messagerie</a></nav></details></header><main><div class="titre"><h1 class="u">Planifiées</h1><span class="sous">14 tâches · 1 suspendue</span></div>
+<div class="liste"><div class="tp th"><span>Tâche</span><span>Fréquence</span><span>Dernière exécution</span><span>Prochaine</span><span class="act"></span></div><div class="tp"><div class="n"><b>sauvegarde-sessions</b><small>profil ops</small></div><span class="f g">tous les jours 02:00</span><div class="d ok"><b>Réussie</b><small>aujourd’hui 02:00</small></div><div class="d s"><b style="font-weight:400">demain 02:00</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>veille-securite</b><small>profil veille</small></div><span class="f g">tous les jours 06:30</span><div class="d ko"><b>Échec</b><small>aujourd’hui 06:30</small></div><div class="d s"><b style="font-weight:400">demain 06:30</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>digest-matin</b><small>profil default</small></div><span class="f g">du lundi au vendredi 07:00</span><div class="d ok"><b>Réussie</b><small>aujourd’hui 07:00</small></div><div class="d s"><b style="font-weight:400">demain 07:00</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>triage-tickets</b><small>profil support</small></div><span class="f g">3 fois par jour : 08:00, 14:00, 18:00</span><div class="d ok"><b>Réussie</b><small>aujourd’hui 14:00</small></div><div class="d s"><b style="font-weight:400">aujourd’hui 18:00</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>rapport-hebdo</b><small>profil redaction</small></div><span class="f g">tous les mardis 09:15</span><div class="d ko"><b>Échec</b><small>aujourd’hui 09:15</small></div><div class="d s"><b style="font-weight:400">mardi 10 nov. 09:15</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>synchro-skills</b><small>profil default</small></div><span class="f g">tous les jours 11:00</span><div class="d ok"><b>Réussie</b><small>aujourd’hui 11:00</small></div><div class="d s"><b style="font-weight:400">demain 11:00</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>resume-messagerie</b><small>profil default</small></div><span class="f g">tous les jours 16:30</span><div class="d ok"><b>Réussie</b><small>hier 16:30</small></div><div class="d s"><b style="font-weight:400">aujourd’hui 16:30</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>nettoyage-cache</b><small>profil ops</small></div><span class="f g">tous les jours 22:00</span><div class="d ok"><b>Réussie</b><small>hier 22:00</small></div><div class="d s"><b style="font-weight:400">aujourd’hui 22:00</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>veille-techno</b><small>profil veille</small></div><span class="f g">tous les lundis 08:30</span><div class="d ok"><b>Réussie</b><small>lundi 2 nov. 08:30</small></div><div class="d s"><b style="font-weight:400">lundi 9 nov. 08:30</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>verification-certificats</b><small>profil ops</small></div><span class="f g">tous les lundis 06:00</span><div class="d ok"><b>Réussie</b><small>lundi 2 nov. 06:00</small></div><div class="d s"><b style="font-weight:400">lundi 9 nov. 06:00</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>purge-sessions</b><small>profil ops</small></div><span class="f g">tous les dimanches 03:30</span><div class="d ok"><b>Réussie</b><small>dimanche 1er nov. 03:30</small></div><div class="d s"><b style="font-weight:400">dimanche 8 nov. 03:30</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>audit-coffre</b><small>profil ops</small></div><span class="f g">tous les vendredis 17:00</span><div class="d ok"><b>Réussie</b><small>vendredi 30 oct. 17:00</small></div><div class="d s"><b style="font-weight:400">vendredi 6 nov. 17:00</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp"><div class="n"><b>releve-tokens</b><small>profil ops</small></div><span class="f g">le 1er de chaque mois 03:00</span><div class="d ok"><b>Réussie</b><small>dimanche 1er nov. 03:00</small></div><div class="d s"><b style="font-weight:400">mardi 1er déc. 03:00</b></div><div class="act"><a href="#">Lancer</a><a href="#">Suspendre</a></div></div><div class="tp susp"><div class="n"><b>publication-hebdo<span class="tag">suspendue</span></b><small>profil redaction</small></div><span class="f g">tous les jeudis 10:00</span><div class="d ok"><b>Réussie</b><small>jeudi 29 oct. 10:00</small></div><div class="d s"><b style="font-weight:400">—</b></div><div class="act"><a href="#">Reprendre</a><a href="#">Lancer</a></div></div></div></main></div></body></html>

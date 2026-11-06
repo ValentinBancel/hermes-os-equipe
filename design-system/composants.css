@@ -1,0 +1,1870 @@
+/*
+ * hermes-os — composants DA-7 « Épure ». Lit exclusivement les variables de tokens.css (aucune couleur en dur).
+ * Usage : voir composants.md (extrait HTML de chaque composant). Noms en français, une classe = une brique.
+ * CSP de l'application : aucun attribut style. Positions de la frise et hauteurs de barres : classes générées en fin de fichier.
+ * Sections : 1 base · 2 conteneur et bande · 3 verre · 4 barre haute · 5 bloc du jour · 6 sections et lignes ·
+ *            7 histogramme · 8 planifiées · 9 compte · 10 formulaires et boutons · 11 panneau « Hermes relié » ·
+ *            12 états (vide, erreur, chargement) et flash · 13 mobile · 14 positions générées.
+ */
+
+/* ============ 1. Base ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--couleur-fond); }
+body {
+  position: relative; min-height: 100vh; overflow-x: hidden;
+  font-family: var(--police); font-size: var(--texte-base); line-height: var(--interligne); color: var(--couleur-encre);
+  -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums;
+}
+a { color: inherit; text-decoration: none; }
+ol, ul { list-style: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+::selection { background: var(--couleur-bande-1); color: var(--couleur-encre); }
+:focus-visible { outline: none; box-shadow: var(--focus-anneau); border-radius: var(--rayon-pilule); }
+h1 { font-weight: var(--poids-fort); font-size: var(--texte-h1-jour); line-height: 1.1; color: var(--couleur-encre); }
+h1 { margin-top: 10px; }
+.titre-page h1 { margin: 0; }
+h1 span { white-space: nowrap; }
+h1 i { font-style: normal; }
+.cache { display: none !important; }
+
+/* ============ 2. Conteneur et bande en arc ============ */
+.conteneur { position: relative; z-index: 1; max-width: var(--conteneur); margin: 0 auto; padding: 20px var(--gouttiere) 72px; }
+
+/* Une seule bande par page, à bord inférieur en arc, jamais derrière du texte.
+   Variantes : .bande-accueil (haute, derrière la barre et le bloc du jour) · .bande-interieure (courte, derrière la barre seule). */
+.bande { position: absolute; inset: 0 0 auto 0; height: 520px; overflow: hidden; pointer-events: none; z-index: 0; }
+.bande::before {
+  content: ""; position: absolute; top: 0; left: 50%; width: 2600px; margin-left: -1300px; height: 400px;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  background: linear-gradient(90deg, var(--couleur-bande-1), var(--couleur-bande-2) 50%, var(--couleur-bande-1));
+}
+.bande-interieure { height: 230px; }
+.bande-interieure::before { height: 150px; }
+
+/* ============ 3. Verre (3 surfaces seulement : .barre, .jour, .panneau-relie) ============ */
+.verre {
+  background: var(--verre-fond);
+  -webkit-backdrop-filter: blur(var(--verre-flou)); backdrop-filter: blur(var(--verre-flou));
+  border: 1px solid var(--verre-liseré);
+}
+
+/* ============ 4. Coque : barre haute ============ */
+.barre { display: flex; align-items: center; gap: var(--espace-8); height: 64px; padding: 0 var(--espace-6); border-radius: var(--rayon-barre); }
+.marque { display: flex; align-items: baseline; gap: var(--espace-3); white-space: nowrap; }
+.marque-nom { font-weight: var(--poids-fort); font-size: var(--texte-wordmark); color: var(--couleur-indigo); }
+.marque-client { font-size: var(--texte-detail); color: var(--couleur-gris); }
+.nav { display: flex; gap: var(--espace-1); margin-left: auto; }
+.nav a { padding: var(--espace-2) var(--espace-3); border-radius: var(--rayon-pilule); font-size: var(--texte-confort); color: var(--couleur-gris); white-space: nowrap; }
+.nav a:hover { color: var(--couleur-indigo); }
+.nav a.actif { color: var(--couleur-indigo); font-weight: var(--poids-fort); background: var(--indigo-fond-actif); }
+.presence { display: flex; align-items: center; gap: 10px; margin-left: var(--espace-2); white-space: nowrap; }
+.connectes { display: flex; align-items: center; gap: var(--espace-2); font-size: var(--texte-detail); color: var(--couleur-gris); }
+.point-ok { width: 8px; height: 8px; border-radius: 50%; background: var(--couleur-ok-point); display: inline-block; flex: none; }
+.avatar-moi {
+  width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 13px; font-weight: var(--poids-moyen); background: var(--couleur-indigo); color: var(--couleur-blanc);
+}
+.avatar-moi.actif { box-shadow: 0 0 0 2px var(--couleur-blanc), 0 0 0 4px var(--couleur-indigo); }
+/* Menu déroulant mobile (<details>, sans JavaScript) : caché sur bureau. */
+.menu-mobile { display: none; }
+
+/* ============ 5. Bloc du jour (accueil) ============ */
+.jour { margin-top: 28px; border-radius: var(--rayon-jour); padding: 48px 56px 44px; }
+.jour-legende { font-size: var(--texte-confort); color: var(--couleur-gris); }
+.jour h1 { margin-top: 10px; }
+.jour-etat { margin-top: var(--espace-3); font-size: var(--texte-base); color: var(--couleur-gris); }
+.jour-etat a { color: var(--couleur-erreur); text-decoration: underline; text-underline-offset: 3px; }
+.compteurs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--indigo-filet-verre); }
+.compteurs > div + div { padding-left: var(--espace-8); border-left: 1px solid var(--indigo-filet-verre); }
+.compteurs b { display: block; font-weight: var(--poids-fort); font-size: var(--texte-chiffre); line-height: 1; color: var(--couleur-indigo); }
+.compteurs span { display: block; margin-top: 6px; font-size: var(--texte-confort); color: var(--couleur-gris); }
+
+/* Frise 0-24 h : une ligne, des points (réussie = plein indigo, échec = rouge, prévue = anneau) et le repère « maintenant ». */
+.frise { position: relative; height: 32px; margin-top: 36px; }
+.frise-ligne { position: absolute; left: 0; right: 0; top: 11px; height: 2px; background: var(--indigo-ligne); border-radius: 2px; }
+.frise-point { position: absolute; top: 6px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--couleur-indigo); }
+.frise-point.echec { background: var(--couleur-erreur); }
+.frise-point.prevu { background: var(--couleur-blanc); box-shadow: inset 0 0 0 2px var(--couleur-indigo); }
+.frise-maintenant { position: absolute; top: 0; width: 2px; height: 24px; margin-left: -1px; background: var(--couleur-indigo); }
+.frise-maintenant i { position: absolute; top: 34px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: var(--texte-axe); font-weight: var(--poids-moyen); color: var(--couleur-indigo); white-space: nowrap; }
+.frise-heures { position: relative; height: 18px; margin-top: 30px; font-size: var(--texte-note); color: var(--couleur-gris); white-space: nowrap; }
+.frise-heures span { position: absolute; top: 0; }
+.frise-heures span:nth-child(1) { left: 0; }
+.frise-heures span:nth-child(2) { left: 25%; transform: translateX(-50%); }
+.frise-heures span:nth-child(3) { left: 50%; transform: translateX(-50%); }
+.frise-heures span:nth-child(4) { left: 75%; transform: translateX(-50%); }
+.frise-heures span:nth-child(5) { left: 100%; transform: translateX(-100%); }
+
+/* ============ 6. Sections à filet et listes denses ============ */
+.grille-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--espace-24); row-gap: var(--espace-16); margin-top: var(--espace-18); }
+.section-titre, h2 { font-weight: var(--poids-fort); font-size: var(--texte-h2); color: var(--couleur-encre); padding-bottom: 14px; border-bottom: 1px solid var(--couleur-filet); }
+.ligne { display: flex; align-items: center; gap: var(--espace-5); padding: 18px 0; border-bottom: 1px solid var(--couleur-filet); }
+.ligne-texte { flex: 1; min-width: 0; }
+.ligne-texte b { display: block; font-weight: var(--poids-moyen); font-size: var(--texte-base); line-height: 1.35; }
+.ligne-texte small { display: block; font-size: var(--texte-detail); color: var(--couleur-gris); margin-top: 2px; }
+.ligne time { font-size: var(--texte-confort); color: var(--couleur-gris); white-space: nowrap; }
+.ligne-heure { width: 56px; flex: none; font-size: var(--texte-base); font-weight: var(--poids-moyen); color: var(--couleur-indigo); }
+.ligne-prochaine .ligne-texte b { font-weight: var(--poids-normal); }
+.rouge { color: var(--couleur-erreur) !important; }
+
+/* Pastille d'action en bout de ligne (« Examiner », « Répondre ») : contour indigo ; .plein = priorité. */
+.pastille-action { flex: none; padding: 7px var(--espace-4); border-radius: var(--rayon-pilule); border: 1px solid var(--indigo-contour); color: var(--couleur-indigo); font-size: var(--texte-detail); font-weight: var(--poids-moyen); background: transparent; }
+.pastille-action.plein { background: var(--couleur-indigo); color: var(--couleur-blanc); border-color: var(--couleur-indigo); }
+
+/* ============ 7. Histogramme (Tokens) ============ */
+.chiffre-grand { display: flex; align-items: baseline; gap: var(--espace-3); padding-top: 22px; }
+.chiffre-grand b { font-weight: var(--poids-fort); font-size: var(--texte-chiffre-grand); line-height: 1; color: var(--couleur-indigo); }
+.chiffre-grand span { font-size: var(--texte-confort); color: var(--couleur-gris); }
+.histo { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 14px; align-items: end; height: 112px; margin-top: 22px; }
+.histo > div { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: var(--espace-2); }
+.histo i { display: block; width: 100%; max-width: 28px; border-radius: var(--rayon-barre-histo) var(--rayon-barre-histo) 0 0; background: var(--couleur-barre); }
+.histo > div:last-child i { background: var(--couleur-indigo); }
+.histo-jours { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 14px; margin-top: var(--espace-2); font-size: 12.5px; color: var(--couleur-gris); text-align: center; }
+.histo-detail { margin-top: var(--espace-5); font-size: 14.5px; color: var(--couleur-gris); }
+
+/* ============ 8. Pages intérieures et liste « Planifiées » ============ */
+.titre-page { display: flex; align-items: baseline; justify-content: space-between; gap: var(--espace-4); margin-top: 84px; }
+.titre-page h1 { font-size: var(--texte-h1-page); }
+.titre-page-sous { font-size: var(--texte-base); color: var(--couleur-gris); }
+
+.liste { margin-top: 28px; }
+.tache { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 2.1fr) minmax(0, 1.5fr) minmax(0, 1.4fr) 120px; gap: var(--espace-6); align-items: center; padding: 15px 0; border-bottom: 1px solid var(--couleur-filet); font-size: var(--texte-confort); }
+.tache-entete { font-size: var(--texte-note); color: var(--couleur-gris); padding: 0 0 var(--espace-3); }
+.tache-nom b { display: block; font-weight: var(--poids-moyen); font-size: var(--texte-base); }
+.tache-nom small { display: block; font-size: var(--texte-note); color: var(--couleur-gris); margin-top: 1px; }
+.tache-frequence { color: var(--couleur-gris); }
+.tache-derniere b { display: block; font-weight: var(--poids-moyen); }
+.tache-derniere small { display: block; font-size: var(--texte-note); color: var(--couleur-gris); }
+.tache-derniere.reussie b::before, .tache-derniere.echec b::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: var(--espace-2); vertical-align: middle; }
+.tache-derniere.reussie b::before { background: var(--couleur-ok); }
+.tache-derniere.echec b::before { background: var(--couleur-erreur); }
+.tache-derniere.echec b, .tache-derniere.echec small { color: var(--couleur-erreur); }
+.tache-prochaine b { display: block; font-weight: var(--poids-normal); }
+.tache-prochaine b::before { content: "Prochaine · "; color: var(--couleur-gris); display: none; }  /* visible en mobile seulement */
+/* Actions : au survol/focus sur bureau, liens texte permanents sous 1100 px. */
+.tache-actions { display: flex; gap: var(--espace-4); justify-content: flex-end; font-size: var(--texte-detail); color: var(--couleur-indigo); font-weight: var(--poids-moyen); opacity: 0; transition: opacity var(--duree); }
+.tache:hover .tache-actions, .tache:focus-within .tache-actions { opacity: 1; }
+.tache.suspendue .tache-nom b, .tache.suspendue .tache-nom small, .tache.suspendue .tache-frequence,
+.tache.suspendue .tache-derniere b, .tache.suspendue .tache-derniere small, .tache.suspendue .tache-prochaine b { color: var(--couleur-gris-doux); }
+.tache.suspendue .tache-derniere b::before { background: var(--couleur-gris-point); }
+.pastille { display: inline-block; margin-left: 10px; padding: 1px 10px; border-radius: var(--rayon-pilule); border: 1px solid var(--couleur-gris-bord); color: var(--couleur-gris-pastille); font-size: 12.5px; font-weight: var(--poids-normal); vertical-align: 2px; }
+
+/* ============ 9. Compte : fiche, liste de comptes ============ */
+.duo > * { min-width: 0; }
+.duo { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: var(--espace-18); margin-top: var(--espace-8); align-items: start; }
+.section + .section { margin-top: var(--espace-14); }
+.section .section-titre, .section h2 { display: flex; align-items: baseline; justify-content: space-between; }
+.fiche-ligne { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; gap: var(--espace-4); align-items: baseline; padding: var(--espace-4) 0; border-bottom: 1px solid var(--couleur-filet); font-size: var(--texte-base); }
+.fiche-ligne > span:first-child { color: var(--couleur-gris); font-size: var(--texte-confort); }
+.fiche-ligne a { color: var(--couleur-indigo); font-weight: var(--poids-moyen); font-size: 14.5px; }
+.fiche-ligne .ok { color: var(--couleur-ok); font-weight: var(--poids-moyen); }
+.fiche-ligne small { color: var(--couleur-gris); font-size: var(--texte-detail); }
+
+.compte { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--espace-4); align-items: center; padding: 14px 0; border-bottom: 1px solid var(--couleur-filet); }
+.compte-qui { display: flex; align-items: center; gap: var(--ecart-avatar); min-width: 0; }
+.compte-qui > div { min-width: 0; }
+.compte-qui b { display: block; font-weight: var(--poids-moyen); font-size: var(--texte-base); }
+.compte-qui small { display: block; font-size: var(--texte-note); color: var(--couleur-gris); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.avatar {
+  position: relative; flex: none; width: var(--taille-avatar); height: var(--taille-avatar); border-radius: 50%; display: grid; place-items: center;
+  font-size: 13px; font-weight: var(--poids-moyen); color: var(--couleur-indigo); background: var(--couleur-avatar);
+}
+.avatar.connecte::after { content: ""; position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; border-radius: 50%; background: var(--couleur-ok-point); border: 2px solid var(--couleur-fond); }
+.compte time { font-size: 14.5px; color: var(--couleur-gris); white-space: nowrap; }
+.compte time.connecte { color: var(--couleur-ok); font-weight: var(--poids-moyen); }
+
+/* ============ 10. Formulaires et boutons ============ */
+.bouton { display: inline-block; padding: 11px var(--espace-6); border-radius: var(--rayon-pilule); background: var(--couleur-indigo); color: var(--couleur-blanc); font-weight: var(--poids-moyen); font-size: var(--texte-confort); white-space: nowrap; border: 0; }
+.bouton-fin { padding: var(--espace-2) 18px; font-size: var(--texte-detail); }
+.bouton:hover { background: var(--couleur-encre); }
+.bouton-texte { color: var(--couleur-indigo); font-weight: var(--poids-moyen); font-size: 14.5px; padding: var(--espace-2) var(--espace-1); }
+.bouton-texte:hover { text-decoration: underline; text-underline-offset: 3px; }
+.bouton-danger { display: inline-block; padding: 11px var(--espace-6); border-radius: var(--rayon-pilule); background: transparent; color: var(--couleur-erreur); border: 1px solid var(--couleur-erreur); font-weight: var(--poids-moyen); font-size: var(--texte-confort); white-space: nowrap; }
+.bouton-danger:hover { background: var(--couleur-erreur); color: var(--couleur-blanc); }
+/* Danger confirmé (dc m8 L4) : le bouton final d'une confirmation destructive (« Délier ») passe en rouge plein. */
+.bouton-danger-plein { background: var(--couleur-erreur); color: var(--couleur-blanc); }
+.bouton[disabled], .bouton-danger[disabled], .bouton[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+
+.formulaire { display: grid; min-width: 0; gap: var(--espace-5); max-width: 420px; }
+.champ { display: grid; gap: 6px; }
+.champ label { font-size: var(--texte-confort); color: var(--couleur-gris); }
+.champ input, .champ select, .champ textarea {
+  font: inherit; font-size: var(--texte-base); color: var(--couleur-encre); background: var(--couleur-blanc);
+  border: 1px solid var(--couleur-gris-doux); border-radius: var(--rayon-champ); padding: 12px var(--espace-4); width: 100%;
+}
+.champ input::placeholder { color: var(--couleur-gris); opacity: 1; }
+.champ input:focus-visible, .champ select:focus-visible, .champ textarea:focus-visible { border-color: var(--couleur-indigo); box-shadow: var(--focus-anneau); border-radius: var(--rayon-champ); outline: none; }
+.champ-aide { font-size: var(--texte-note); color: var(--couleur-gris); }
+.champ.erreur input { border-color: var(--couleur-erreur); }
+.champ-erreur { font-size: var(--texte-note); color: var(--couleur-erreur); }
+.formulaire-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-4); }
+
+/* ============ 11. Panneau verre « Hermes relié » ============ */
+.panneau-relie { border-radius: var(--rayon-jour); padding: var(--espace-8); }
+.panneau-relie h2 { border: 0; padding: 0; font-weight: var(--poids-fort); font-size: var(--texte-h2); }
+.section h2 .bouton { font-size: var(--texte-detail); padding: var(--espace-2) 18px; }
+.instance { margin-top: var(--espace-4); padding-bottom: 22px; border-bottom: 1px solid var(--indigo-filet-verre); }
+.instance b { display: block; font-weight: var(--poids-fort); font-size: var(--texte-h3); }
+.instance span { display: block; font-size: var(--texte-detail); color: var(--couleur-gris); margin-top: 2px; }
+.instance .ok { display: inline; color: var(--couleur-ok); font-weight: var(--poids-moyen); }
+.instance .hors-ligne { display: inline; color: var(--couleur-erreur); font-weight: var(--poids-moyen); }
+.panneau-relie h3 { font-weight: var(--poids-fort); font-size: var(--texte-h3); margin-top: var(--espace-6); }
+.etapes, .panneau-relie ol { counter-reset: etape; margin-top: var(--espace-4); display: grid; gap: 14px; }
+.etapes li, .panneau-relie ol li { counter-increment: etape; display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; font-size: var(--texte-confort); line-height: 1.4; }
+.etapes li::before, .panneau-relie ol li::before { content: counter(etape); font-weight: var(--poids-fort); color: var(--couleur-indigo); }
+.commande { margin-top: 22px; padding: 14px var(--espace-4); border-radius: var(--rayon-champ); background: var(--couleur-blanc); border: 1px solid var(--couleur-filet); font-family: var(--police-mono); font-size: var(--texte-commande); line-height: 1.5; word-break: break-all; color: var(--couleur-encre); }
+.code-appairage { display: flex; align-items: baseline; justify-content: space-between; gap: var(--espace-3); margin-top: var(--espace-5); }
+.code-appairage b { font-weight: var(--poids-fort); font-size: var(--texte-code); letter-spacing: .04em; color: var(--couleur-indigo); white-space: nowrap; }
+.code-appairage span { font-size: var(--texte-detail); color: var(--couleur-gris); white-space: nowrap; }
+/* « Copier » inline (dc m8 L4) : un .bouton-texte placé sous une .commande (.commande-copie) ou dans la ligne d'un code
+   (.code-appairage) ; le libellé devient « Copié » deux secondes. Aligné sur le texte de la commande. */
+.commande-copie { margin-top: var(--espace-1); }
+.commande-copie .bouton-texte { margin-left: calc(-1 * var(--espace-1)); }
+/* Confirmation dans le panneau verre (dc m8 L4) : remplace le bouton qui l'a ouverte, sur le fond menu du verre, filet 1 px. */
+.panneau-relie .confirmation-panneau { margin-top: var(--espace-5); padding: var(--espace-5); background: var(--verre-fond-menu); border: 1px solid var(--couleur-filet); border-radius: var(--rayon-champ); }
+
+/* ============ 12. États (vide, erreur, chargement) et messages flash ============ */
+/* Sur lavande, entre filets : jamais sur du verre. */
+.etat-vide, .etat-erreur { padding: var(--espace-10) 0; border-bottom: 1px solid var(--couleur-filet); }
+.etat-vide b, .etat-erreur b { display: block; font-weight: var(--poids-moyen); font-size: var(--texte-base); }
+.etat-vide p, .etat-erreur p { margin-top: var(--espace-1); font-size: var(--texte-confort); color: var(--couleur-gris); max-width: 52ch; }
+.etat-vide .bouton, .etat-erreur .bouton-texte { margin-top: var(--espace-4); }
+/* Confirmation à la place d'une ligne de liste (Coffre, dc M2 L6) : sur la lavande, filet 1 px, rayon champ ; jamais de verre. */
+.confirmation-ligne { margin-block: var(--espace-3); padding: var(--espace-5); background: var(--couleur-fond); border: 1px solid var(--couleur-filet); border-radius: var(--rayon-champ); }
+/* Formulaire ouvert sous la ligne qu'il modifie : même filet que les lignes. */
+.formulaire-ligne { padding: var(--espace-5) 0 var(--espace-8); border-bottom: 1px solid var(--couleur-filet); }
+.formulaire-ligne h2 { padding-bottom: 0; border-bottom: 0; margin-bottom: var(--espace-2); }
+.etat-erreur b { color: var(--couleur-erreur); }
+.etat-erreur .bouton-texte { display: inline-block; padding-left: 0; }
+.chargement { display: grid; gap: 0; }
+.chargement > i { display: block; height: 14px; margin: 22px 0; border-radius: var(--rayon-pilule); background: var(--couleur-filet); animation: epure-pulse 1.4s ease-in-out infinite; }
+.chargement > i:nth-child(odd) { width: 70%; }
+.chargement > i:nth-child(even) { width: 45%; }
+@keyframes epure-pulse { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .chargement > i { animation: none; } }
+
+.flash { display: flex; align-items: baseline; gap: var(--espace-3); padding: 14px 0; margin-top: var(--espace-6); border-top: 1px solid var(--couleur-filet); border-bottom: 1px solid var(--couleur-filet); font-size: var(--texte-confort); }
+.flash::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--couleur-indigo); align-self: center; }
+.flash.ok { color: var(--couleur-ok); }
+.flash.ok::before { background: var(--couleur-ok); }
+.flash.erreur { color: var(--couleur-erreur); }
+.flash.erreur::before { background: var(--couleur-erreur); }
+
+/* ============ 13. Responsive ============ */
+@media (max-width: 1100px) {
+  .tache { grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1.2fr); gap: var(--espace-5); }
+  .tache-actions { grid-column: 1 / -1; justify-content: flex-start; opacity: 1; margin-top: -6px; }
+  .tache-entete .tache-actions { display: none; }
+}
+@media (max-width: 900px) {
+  .grille-sections { grid-template-columns: minmax(0, 1fr); row-gap: 48px; margin-top: 48px; }
+  .s-erreurs { order: 1; } .s-decider { order: 2; } .s-prochaines { order: 3; } .s-tokens { order: 4; }
+  .duo { grid-template-columns: minmax(0, 1fr); gap: var(--espace-14); }
+}
+@media (max-width: 760px) {
+  .conteneur { padding: var(--espace-3) var(--espace-4) var(--espace-14); }
+  .bande { height: 420px; } .bande::before { height: 330px; }
+  .bande-interieure { height: 200px; } .bande-interieure::before { height: 110px; }
+  .barre { height: 56px; padding: 0 var(--espace-3) 0 var(--espace-4); gap: 10px; border-radius: var(--rayon-menu); }
+  .nav, .connectes { display: none; }
+  .presence { margin-left: 0; order: 3; }
+  .marque { gap: var(--espace-2); } .marque-nom { font-size: 20px; } .marque-client { font-size: var(--texte-axe); }
+  .menu-mobile { display: block; position: relative; order: 2; margin-left: auto; }
+  .menu-mobile summary { list-style: none; cursor: pointer; padding: var(--espace-2) 14px; border-radius: var(--rayon-pilule); border: 1px solid var(--indigo-contour-doux); color: var(--couleur-indigo); font-size: var(--texte-detail); font-weight: var(--poids-moyen); }
+  .menu-mobile summary::-webkit-details-marker { display: none; }
+  .menu-mobile nav { position: absolute; right: -48px; top: 46px; width: 220px; padding: 10px; border-radius: var(--rayon-menu); display: grid; background: var(--verre-fond-menu); }
+  .menu-mobile nav a { padding: 10px var(--espace-3); border-radius: 10px; font-size: var(--texte-confort); color: var(--couleur-gris); }
+  .menu-mobile nav a.actif { color: var(--couleur-indigo); font-weight: var(--poids-fort); background: var(--indigo-fond-doux); }
+  .jour { margin-top: var(--espace-4); border-radius: var(--rayon-panneau-mobile); padding: 26px var(--espace-5) var(--espace-6); }
+  h1 { font-size: 28px; } h1 span { display: block; } h1 .separateur { display: none; }
+  .jour-etat { font-size: 14.5px; }
+  .compteurs { margin-top: 22px; padding-top: 18px; }
+  .compteurs > div + div { padding-left: var(--espace-3); }
+  .compteurs b { font-size: 30px; } .compteurs span { font-size: var(--texte-axe); }
+  .frise { margin-top: var(--espace-6); }
+  .titre-page { margin-top: var(--espace-16); flex-direction: column; align-items: flex-start; gap: var(--espace-1); }
+  .titre-page h1 { font-size: 32px; }
+  .tache-entete { display: none; }
+  .tache { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px var(--espace-4); padding: var(--espace-4) 0; }
+  .tache-nom { grid-column: 1 / -1; }
+  .tache-frequence { grid-column: 1 / -1; font-size: 14.5px; }
+  .tache-actions { grid-column: 1 / -1; margin-top: var(--espace-1); font-size: var(--texte-detail); }
+  .tache-derniere, .tache-prochaine { font-size: 14.5px; }
+  .tache-prochaine { grid-column: 2; grid-row: 3; } .tache-prochaine b::before { display: inline; }
+  .tache-derniere { grid-column: 1; grid-row: 3; }
+  .tache-derniere small, .tache-prochaine small { font-size: var(--texte-axe); }
+  .fiche-ligne { grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--espace-3); padding: 14px 0; }
+  .fiche-ligne > span:first-child { grid-column: 1 / -1; font-size: var(--texte-note); }
+  .compte { grid-template-columns: minmax(0, 1fr); }
+  .compte time { padding-left: calc(var(--taille-avatar) + var(--ecart-avatar)); margin-top: -10px; }
+  .panneau-relie { padding: var(--espace-6) var(--espace-5); border-radius: var(--rayon-panneau-mobile); }
+  .code-appairage b { font-size: 26px; }
+  .chiffre-grand b { font-size: var(--texte-chiffre); }
+  .ligne { gap: var(--espace-3); }
+
+  /* Cibles tactiles (dc M1 L6) : sur mobile, tout cliquable fait au moins var(--espace-10) (40 px) de haut.
+     Boutons : hauteur minimale, texte centré. Liens dans une ligne ou un texte (nom de ligne, période, « Changer »,
+     retour) et libellé d'une case à cocher : zone élargie par un padding vertical compensé par une marge négative, rendu inchangé.
+     Mesure dans un vrai Chromium : scripts/mesure-cibles.sh. */
+  .bouton, .bouton-texte, .bouton-danger { min-height: var(--espace-10); display: inline-flex; align-items: center; justify-content: center; }
+  summary.bouton-texte { display: list-item; padding-block: calc((var(--espace-10) - 1lh) / 2); }
+  .ligne-texte b > a, .tache-nom b > a, .histo-detail a, .jour-etat a, nav.titre-page-sous a, a.titre-page-sous, .fiche-ligne > a,
+  label:has(> input[type=checkbox]) {
+    display: inline-block; padding-block: calc((var(--espace-10) - 1lh) / 2); margin-block: calc((var(--espace-10) - 1lh) / -2);
+  }
+  .marque { padding-block: var(--espace-2); }
+  .menu-mobile summary { min-height: var(--espace-10); display: flex; align-items: center; }
+  /* Avatar : cible de 40 px, disque visible inchangé (34 px, détouré par le padding) ; anneau « actif » redessiné
+     à l'identique (2 px d'écart, 2 px d'indigo). */
+  .avatar-moi { width: var(--espace-10); height: var(--espace-10); padding: 3px; background-clip: content-box; }
+  .avatar-moi.actif { box-shadow: inset 0 0 0 1px var(--couleur-indigo), 0 0 0 1px var(--couleur-indigo); }
+}
+
+/* ============ 14. Positions générées (CSP : pas d'attribut style) ============
+   .frise-t-N : position horizontale d'un point, N = minute depuis 00:00 (0 à 1440) → left = N/1440.
+   .histo-h-N : hauteur d'une barre en % (0 à 100).
+   Générées par design-system/outils/generer-positions.py : ne pas modifier à la main. */
+/* POSITIONS-DEBUT */
+.frise-t-0 { left: 0.000%; }
+.frise-t-1 { left: 0.069%; }
+.frise-t-2 { left: 0.139%; }
+.frise-t-3 { left: 0.208%; }
+.frise-t-4 { left: 0.278%; }
+.frise-t-5 { left: 0.347%; }
+.frise-t-6 { left: 0.417%; }
+.frise-t-7 { left: 0.486%; }
+.frise-t-8 { left: 0.556%; }
+.frise-t-9 { left: 0.625%; }
+.frise-t-10 { left: 0.694%; }
+.frise-t-11 { left: 0.764%; }
+.frise-t-12 { left: 0.833%; }
+.frise-t-13 { left: 0.903%; }
+.frise-t-14 { left: 0.972%; }
+.frise-t-15 { left: 1.042%; }
+.frise-t-16 { left: 1.111%; }
+.frise-t-17 { left: 1.181%; }
+.frise-t-18 { left: 1.250%; }
+.frise-t-19 { left: 1.319%; }
+.frise-t-20 { left: 1.389%; }
+.frise-t-21 { left: 1.458%; }
+.frise-t-22 { left: 1.528%; }
+.frise-t-23 { left: 1.597%; }
+.frise-t-24 { left: 1.667%; }
+.frise-t-25 { left: 1.736%; }
+.frise-t-26 { left: 1.806%; }
+.frise-t-27 { left: 1.875%; }
+.frise-t-28 { left: 1.944%; }
+.frise-t-29 { left: 2.014%; }
+.frise-t-30 { left: 2.083%; }
+.frise-t-31 { left: 2.153%; }
+.frise-t-32 { left: 2.222%; }
+.frise-t-33 { left: 2.292%; }
+.frise-t-34 { left: 2.361%; }
+.frise-t-35 { left: 2.431%; }
+.frise-t-36 { left: 2.500%; }
+.frise-t-37 { left: 2.569%; }
+.frise-t-38 { left: 2.639%; }
+.frise-t-39 { left: 2.708%; }
+.frise-t-40 { left: 2.778%; }
+.frise-t-41 { left: 2.847%; }
+.frise-t-42 { left: 2.917%; }
+.frise-t-43 { left: 2.986%; }
+.frise-t-44 { left: 3.056%; }
+.frise-t-45 { left: 3.125%; }
+.frise-t-46 { left: 3.194%; }
+.frise-t-47 { left: 3.264%; }
+.frise-t-48 { left: 3.333%; }
+.frise-t-49 { left: 3.403%; }
+.frise-t-50 { left: 3.472%; }
+.frise-t-51 { left: 3.542%; }
+.frise-t-52 { left: 3.611%; }
+.frise-t-53 { left: 3.681%; }
+.frise-t-54 { left: 3.750%; }
+.frise-t-55 { left: 3.819%; }
+.frise-t-56 { left: 3.889%; }
+.frise-t-57 { left: 3.958%; }
+.frise-t-58 { left: 4.028%; }
+.frise-t-59 { left: 4.097%; }
+.frise-t-60 { left: 4.167%; }
+.frise-t-61 { left: 4.236%; }
+.frise-t-62 { left: 4.306%; }
+.frise-t-63 { left: 4.375%; }
+.frise-t-64 { left: 4.444%; }
+.frise-t-65 { left: 4.514%; }
+.frise-t-66 { left: 4.583%; }
+.frise-t-67 { left: 4.653%; }
+.frise-t-68 { left: 4.722%; }
+.frise-t-69 { left: 4.792%; }
+.frise-t-70 { left: 4.861%; }
+.frise-t-71 { left: 4.931%; }
+.frise-t-72 { left: 5.000%; }
+.frise-t-73 { left: 5.069%; }
+.frise-t-74 { left: 5.139%; }
+.frise-t-75 { left: 5.208%; }
+.frise-t-76 { left: 5.278%; }
+.frise-t-77 { left: 5.347%; }
+.frise-t-78 { left: 5.417%; }
+.frise-t-79 { left: 5.486%; }
+.frise-t-80 { left: 5.556%; }
+.frise-t-81 { left: 5.625%; }
+.frise-t-82 { left: 5.694%; }
+.frise-t-83 { left: 5.764%; }
+.frise-t-84 { left: 5.833%; }
+.frise-t-85 { left: 5.903%; }
+.frise-t-86 { left: 5.972%; }
+.frise-t-87 { left: 6.042%; }
+.frise-t-88 { left: 6.111%; }
+.frise-t-89 { left: 6.181%; }
+.frise-t-90 { left: 6.250%; }
+.frise-t-91 { left: 6.319%; }
+.frise-t-92 { left: 6.389%; }
+.frise-t-93 { left: 6.458%; }
+.frise-t-94 { left: 6.528%; }
+.frise-t-95 { left: 6.597%; }
+.frise-t-96 { left: 6.667%; }
+.frise-t-97 { left: 6.736%; }
+.frise-t-98 { left: 6.806%; }
+.frise-t-99 { left: 6.875%; }
+.frise-t-100 { left: 6.944%; }
+.frise-t-101 { left: 7.014%; }
+.frise-t-102 { left: 7.083%; }
+.frise-t-103 { left: 7.153%; }
+.frise-t-104 { left: 7.222%; }
+.frise-t-105 { left: 7.292%; }
+.frise-t-106 { left: 7.361%; }
+.frise-t-107 { left: 7.431%; }
+.frise-t-108 { left: 7.500%; }
+.frise-t-109 { left: 7.569%; }
+.frise-t-110 { left: 7.639%; }
+.frise-t-111 { left: 7.708%; }
+.frise-t-112 { left: 7.778%; }
+.frise-t-113 { left: 7.847%; }
+.frise-t-114 { left: 7.917%; }
+.frise-t-115 { left: 7.986%; }
+.frise-t-116 { left: 8.056%; }
+.frise-t-117 { left: 8.125%; }
+.frise-t-118 { left: 8.194%; }
+.frise-t-119 { left: 8.264%; }
+.frise-t-120 { left: 8.333%; }
+.frise-t-121 { left: 8.403%; }
+.frise-t-122 { left: 8.472%; }
+.frise-t-123 { left: 8.542%; }
+.frise-t-124 { left: 8.611%; }
+.frise-t-125 { left: 8.681%; }
+.frise-t-126 { left: 8.750%; }
+.frise-t-127 { left: 8.819%; }
+.frise-t-128 { left: 8.889%; }
+.frise-t-129 { left: 8.958%; }
+.frise-t-130 { left: 9.028%; }
+.frise-t-131 { left: 9.097%; }
+.frise-t-132 { left: 9.167%; }
+.frise-t-133 { left: 9.236%; }
+.frise-t-134 { left: 9.306%; }
+.frise-t-135 { left: 9.375%; }
+.frise-t-136 { left: 9.444%; }
+.frise-t-137 { left: 9.514%; }
+.frise-t-138 { left: 9.583%; }
+.frise-t-139 { left: 9.653%; }
+.frise-t-140 { left: 9.722%; }
+.frise-t-141 { left: 9.792%; }
+.frise-t-142 { left: 9.861%; }
+.frise-t-143 { left: 9.931%; }
+.frise-t-144 { left: 10.000%; }
+.frise-t-145 { left: 10.069%; }
+.frise-t-146 { left: 10.139%; }
+.frise-t-147 { left: 10.208%; }
+.frise-t-148 { left: 10.278%; }
+.frise-t-149 { left: 10.347%; }
+.frise-t-150 { left: 10.417%; }
+.frise-t-151 { left: 10.486%; }
+.frise-t-152 { left: 10.556%; }
+.frise-t-153 { left: 10.625%; }
+.frise-t-154 { left: 10.694%; }
+.frise-t-155 { left: 10.764%; }
+.frise-t-156 { left: 10.833%; }
+.frise-t-157 { left: 10.903%; }
+.frise-t-158 { left: 10.972%; }
+.frise-t-159 { left: 11.042%; }
+.frise-t-160 { left: 11.111%; }
+.frise-t-161 { left: 11.181%; }
+.frise-t-162 { left: 11.250%; }
+.frise-t-163 { left: 11.319%; }
+.frise-t-164 { left: 11.389%; }
+.frise-t-165 { left: 11.458%; }
+.frise-t-166 { left: 11.528%; }
+.frise-t-167 { left: 11.597%; }
+.frise-t-168 { left: 11.667%; }
+.frise-t-169 { left: 11.736%; }
+.frise-t-170 { left: 11.806%; }
+.frise-t-171 { left: 11.875%; }
+.frise-t-172 { left: 11.944%; }
+.frise-t-173 { left: 12.014%; }
+.frise-t-174 { left: 12.083%; }
+.frise-t-175 { left: 12.153%; }
+.frise-t-176 { left: 12.222%; }
+.frise-t-177 { left: 12.292%; }
+.frise-t-178 { left: 12.361%; }
+.frise-t-179 { left: 12.431%; }
+.frise-t-180 { left: 12.500%; }
+.frise-t-181 { left: 12.569%; }
+.frise-t-182 { left: 12.639%; }
+.frise-t-183 { left: 12.708%; }
+.frise-t-184 { left: 12.778%; }
+.frise-t-185 { left: 12.847%; }
+.frise-t-186 { left: 12.917%; }
+.frise-t-187 { left: 12.986%; }
+.frise-t-188 { left: 13.056%; }
+.frise-t-189 { left: 13.125%; }
+.frise-t-190 { left: 13.194%; }
+.frise-t-191 { left: 13.264%; }
+.frise-t-192 { left: 13.333%; }
+.frise-t-193 { left: 13.403%; }
+.frise-t-194 { left: 13.472%; }
+.frise-t-195 { left: 13.542%; }
+.frise-t-196 { left: 13.611%; }
+.frise-t-197 { left: 13.681%; }
+.frise-t-198 { left: 13.750%; }
+.frise-t-199 { left: 13.819%; }
+.frise-t-200 { left: 13.889%; }
+.frise-t-201 { left: 13.958%; }
+.frise-t-202 { left: 14.028%; }
+.frise-t-203 { left: 14.097%; }
+.frise-t-204 { left: 14.167%; }
+.frise-t-205 { left: 14.236%; }
+.frise-t-206 { left: 14.306%; }
+.frise-t-207 { left: 14.375%; }
+.frise-t-208 { left: 14.444%; }
+.frise-t-209 { left: 14.514%; }
+.frise-t-210 { left: 14.583%; }
+.frise-t-211 { left: 14.653%; }
+.frise-t-212 { left: 14.722%; }
+.frise-t-213 { left: 14.792%; }
+.frise-t-214 { left: 14.861%; }
+.frise-t-215 { left: 14.931%; }
+.frise-t-216 { left: 15.000%; }
+.frise-t-217 { left: 15.069%; }
+.frise-t-218 { left: 15.139%; }
+.frise-t-219 { left: 15.208%; }
+.frise-t-220 { left: 15.278%; }
+.frise-t-221 { left: 15.347%; }
+.frise-t-222 { left: 15.417%; }
+.frise-t-223 { left: 15.486%; }
+.frise-t-224 { left: 15.556%; }
+.frise-t-225 { left: 15.625%; }
+.frise-t-226 { left: 15.694%; }
+.frise-t-227 { left: 15.764%; }
+.frise-t-228 { left: 15.833%; }
+.frise-t-229 { left: 15.903%; }
+.frise-t-230 { left: 15.972%; }
+.frise-t-231 { left: 16.042%; }
+.frise-t-232 { left: 16.111%; }
+.frise-t-233 { left: 16.181%; }
+.frise-t-234 { left: 16.250%; }
+.frise-t-235 { left: 16.319%; }
+.frise-t-236 { left: 16.389%; }
+.frise-t-237 { left: 16.458%; }
+.frise-t-238 { left: 16.528%; }
+.frise-t-239 { left: 16.597%; }
+.frise-t-240 { left: 16.667%; }
+.frise-t-241 { left: 16.736%; }
+.frise-t-242 { left: 16.806%; }
+.frise-t-243 { left: 16.875%; }
+.frise-t-244 { left: 16.944%; }
+.frise-t-245 { left: 17.014%; }
+.frise-t-246 { left: 17.083%; }
+.frise-t-247 { left: 17.153%; }
+.frise-t-248 { left: 17.222%; }
+.frise-t-249 { left: 17.292%; }
+.frise-t-250 { left: 17.361%; }
+.frise-t-251 { left: 17.431%; }
+.frise-t-252 { left: 17.500%; }
+.frise-t-253 { left: 17.569%; }
+.frise-t-254 { left: 17.639%; }
+.frise-t-255 { left: 17.708%; }
+.frise-t-256 { left: 17.778%; }
+.frise-t-257 { left: 17.847%; }
+.frise-t-258 { left: 17.917%; }
+.frise-t-259 { left: 17.986%; }
+.frise-t-260 { left: 18.056%; }
+.frise-t-261 { left: 18.125%; }
+.frise-t-262 { left: 18.194%; }
+.frise-t-263 { left: 18.264%; }
+.frise-t-264 { left: 18.333%; }
+.frise-t-265 { left: 18.403%; }
+.frise-t-266 { left: 18.472%; }
+.frise-t-267 { left: 18.542%; }
+.frise-t-268 { left: 18.611%; }
+.frise-t-269 { left: 18.681%; }
+.frise-t-270 { left: 18.750%; }
+.frise-t-271 { left: 18.819%; }
+.frise-t-272 { left: 18.889%; }
+.frise-t-273 { left: 18.958%; }
+.frise-t-274 { left: 19.028%; }
+.frise-t-275 { left: 19.097%; }
+.frise-t-276 { left: 19.167%; }
+.frise-t-277 { left: 19.236%; }
+.frise-t-278 { left: 19.306%; }
+.frise-t-279 { left: 19.375%; }
+.frise-t-280 { left: 19.444%; }
+.frise-t-281 { left: 19.514%; }
+.frise-t-282 { left: 19.583%; }
+.frise-t-283 { left: 19.653%; }
+.frise-t-284 { left: 19.722%; }
+.frise-t-285 { left: 19.792%; }
+.frise-t-286 { left: 19.861%; }
+.frise-t-287 { left: 19.931%; }
+.frise-t-288 { left: 20.000%; }
+.frise-t-289 { left: 20.069%; }
+.frise-t-290 { left: 20.139%; }
+.frise-t-291 { left: 20.208%; }
+.frise-t-292 { left: 20.278%; }
+.frise-t-293 { left: 20.347%; }
+.frise-t-294 { left: 20.417%; }
+.frise-t-295 { left: 20.486%; }
+.frise-t-296 { left: 20.556%; }
+.frise-t-297 { left: 20.625%; }
+.frise-t-298 { left: 20.694%; }
+.frise-t-299 { left: 20.764%; }
+.frise-t-300 { left: 20.833%; }
+.frise-t-301 { left: 20.903%; }
+.frise-t-302 { left: 20.972%; }
+.frise-t-303 { left: 21.042%; }
+.frise-t-304 { left: 21.111%; }
+.frise-t-305 { left: 21.181%; }
+.frise-t-306 { left: 21.250%; }
+.frise-t-307 { left: 21.319%; }
+.frise-t-308 { left: 21.389%; }
+.frise-t-309 { left: 21.458%; }
+.frise-t-310 { left: 21.528%; }
+.frise-t-311 { left: 21.597%; }
+.frise-t-312 { left: 21.667%; }
+.frise-t-313 { left: 21.736%; }
+.frise-t-314 { left: 21.806%; }
+.frise-t-315 { left: 21.875%; }
+.frise-t-316 { left: 21.944%; }
+.frise-t-317 { left: 22.014%; }
+.frise-t-318 { left: 22.083%; }
+.frise-t-319 { left: 22.153%; }
+.frise-t-320 { left: 22.222%; }
+.frise-t-321 { left: 22.292%; }
+.frise-t-322 { left: 22.361%; }
+.frise-t-323 { left: 22.431%; }
+.frise-t-324 { left: 22.500%; }
+.frise-t-325 { left: 22.569%; }
+.frise-t-326 { left: 22.639%; }
+.frise-t-327 { left: 22.708%; }
+.frise-t-328 { left: 22.778%; }
+.frise-t-329 { left: 22.847%; }
+.frise-t-330 { left: 22.917%; }
+.frise-t-331 { left: 22.986%; }
+.frise-t-332 { left: 23.056%; }
+.frise-t-333 { left: 23.125%; }
+.frise-t-334 { left: 23.194%; }
+.frise-t-335 { left: 23.264%; }
+.frise-t-336 { left: 23.333%; }
+.frise-t-337 { left: 23.403%; }
+.frise-t-338 { left: 23.472%; }
+.frise-t-339 { left: 23.542%; }
+.frise-t-340 { left: 23.611%; }
+.frise-t-341 { left: 23.681%; }
+.frise-t-342 { left: 23.750%; }
+.frise-t-343 { left: 23.819%; }
+.frise-t-344 { left: 23.889%; }
+.frise-t-345 { left: 23.958%; }
+.frise-t-346 { left: 24.028%; }
+.frise-t-347 { left: 24.097%; }
+.frise-t-348 { left: 24.167%; }
+.frise-t-349 { left: 24.236%; }
+.frise-t-350 { left: 24.306%; }
+.frise-t-351 { left: 24.375%; }
+.frise-t-352 { left: 24.444%; }
+.frise-t-353 { left: 24.514%; }
+.frise-t-354 { left: 24.583%; }
+.frise-t-355 { left: 24.653%; }
+.frise-t-356 { left: 24.722%; }
+.frise-t-357 { left: 24.792%; }
+.frise-t-358 { left: 24.861%; }
+.frise-t-359 { left: 24.931%; }
+.frise-t-360 { left: 25.000%; }
+.frise-t-361 { left: 25.069%; }
+.frise-t-362 { left: 25.139%; }
+.frise-t-363 { left: 25.208%; }
+.frise-t-364 { left: 25.278%; }
+.frise-t-365 { left: 25.347%; }
+.frise-t-366 { left: 25.417%; }
+.frise-t-367 { left: 25.486%; }
+.frise-t-368 { left: 25.556%; }
+.frise-t-369 { left: 25.625%; }
+.frise-t-370 { left: 25.694%; }
+.frise-t-371 { left: 25.764%; }
+.frise-t-372 { left: 25.833%; }
+.frise-t-373 { left: 25.903%; }
+.frise-t-374 { left: 25.972%; }
+.frise-t-375 { left: 26.042%; }
+.frise-t-376 { left: 26.111%; }
+.frise-t-377 { left: 26.181%; }
+.frise-t-378 { left: 26.250%; }
+.frise-t-379 { left: 26.319%; }
+.frise-t-380 { left: 26.389%; }
+.frise-t-381 { left: 26.458%; }
+.frise-t-382 { left: 26.528%; }
+.frise-t-383 { left: 26.597%; }
+.frise-t-384 { left: 26.667%; }
+.frise-t-385 { left: 26.736%; }
+.frise-t-386 { left: 26.806%; }
+.frise-t-387 { left: 26.875%; }
+.frise-t-388 { left: 26.944%; }
+.frise-t-389 { left: 27.014%; }
+.frise-t-390 { left: 27.083%; }
+.frise-t-391 { left: 27.153%; }
+.frise-t-392 { left: 27.222%; }
+.frise-t-393 { left: 27.292%; }
+.frise-t-394 { left: 27.361%; }
+.frise-t-395 { left: 27.431%; }
+.frise-t-396 { left: 27.500%; }
+.frise-t-397 { left: 27.569%; }
+.frise-t-398 { left: 27.639%; }
+.frise-t-399 { left: 27.708%; }
+.frise-t-400 { left: 27.778%; }
+.frise-t-401 { left: 27.847%; }
+.frise-t-402 { left: 27.917%; }
+.frise-t-403 { left: 27.986%; }
+.frise-t-404 { left: 28.056%; }
+.frise-t-405 { left: 28.125%; }
+.frise-t-406 { left: 28.194%; }
+.frise-t-407 { left: 28.264%; }
+.frise-t-408 { left: 28.333%; }
+.frise-t-409 { left: 28.403%; }
+.frise-t-410 { left: 28.472%; }
+.frise-t-411 { left: 28.542%; }
+.frise-t-412 { left: 28.611%; }
+.frise-t-413 { left: 28.681%; }
+.frise-t-414 { left: 28.750%; }
+.frise-t-415 { left: 28.819%; }
+.frise-t-416 { left: 28.889%; }
+.frise-t-417 { left: 28.958%; }
+.frise-t-418 { left: 29.028%; }
+.frise-t-419 { left: 29.097%; }
+.frise-t-420 { left: 29.167%; }
+.frise-t-421 { left: 29.236%; }
+.frise-t-422 { left: 29.306%; }
+.frise-t-423 { left: 29.375%; }
+.frise-t-424 { left: 29.444%; }
+.frise-t-425 { left: 29.514%; }
+.frise-t-426 { left: 29.583%; }
+.frise-t-427 { left: 29.653%; }
+.frise-t-428 { left: 29.722%; }
+.frise-t-429 { left: 29.792%; }
+.frise-t-430 { left: 29.861%; }
+.frise-t-431 { left: 29.931%; }
+.frise-t-432 { left: 30.000%; }
+.frise-t-433 { left: 30.069%; }
+.frise-t-434 { left: 30.139%; }
+.frise-t-435 { left: 30.208%; }
+.frise-t-436 { left: 30.278%; }
+.frise-t-437 { left: 30.347%; }
+.frise-t-438 { left: 30.417%; }
+.frise-t-439 { left: 30.486%; }
+.frise-t-440 { left: 30.556%; }
+.frise-t-441 { left: 30.625%; }
+.frise-t-442 { left: 30.694%; }
+.frise-t-443 { left: 30.764%; }
+.frise-t-444 { left: 30.833%; }
+.frise-t-445 { left: 30.903%; }
+.frise-t-446 { left: 30.972%; }
+.frise-t-447 { left: 31.042%; }
+.frise-t-448 { left: 31.111%; }
+.frise-t-449 { left: 31.181%; }
+.frise-t-450 { left: 31.250%; }
+.frise-t-451 { left: 31.319%; }
+.frise-t-452 { left: 31.389%; }
+.frise-t-453 { left: 31.458%; }
+.frise-t-454 { left: 31.528%; }
+.frise-t-455 { left: 31.597%; }
+.frise-t-456 { left: 31.667%; }
+.frise-t-457 { left: 31.736%; }
+.frise-t-458 { left: 31.806%; }
+.frise-t-459 { left: 31.875%; }
+.frise-t-460 { left: 31.944%; }
+.frise-t-461 { left: 32.014%; }
+.frise-t-462 { left: 32.083%; }
+.frise-t-463 { left: 32.153%; }
+.frise-t-464 { left: 32.222%; }
+.frise-t-465 { left: 32.292%; }
+.frise-t-466 { left: 32.361%; }
+.frise-t-467 { left: 32.431%; }
+.frise-t-468 { left: 32.500%; }
+.frise-t-469 { left: 32.569%; }
+.frise-t-470 { left: 32.639%; }
+.frise-t-471 { left: 32.708%; }
+.frise-t-472 { left: 32.778%; }
+.frise-t-473 { left: 32.847%; }
+.frise-t-474 { left: 32.917%; }
+.frise-t-475 { left: 32.986%; }
+.frise-t-476 { left: 33.056%; }
+.frise-t-477 { left: 33.125%; }
+.frise-t-478 { left: 33.194%; }
+.frise-t-479 { left: 33.264%; }
+.frise-t-480 { left: 33.333%; }
+.frise-t-481 { left: 33.403%; }
+.frise-t-482 { left: 33.472%; }
+.frise-t-483 { left: 33.542%; }
+.frise-t-484 { left: 33.611%; }
+.frise-t-485 { left: 33.681%; }
+.frise-t-486 { left: 33.750%; }
+.frise-t-487 { left: 33.819%; }
+.frise-t-488 { left: 33.889%; }
+.frise-t-489 { left: 33.958%; }
+.frise-t-490 { left: 34.028%; }
+.frise-t-491 { left: 34.097%; }
+.frise-t-492 { left: 34.167%; }
+.frise-t-493 { left: 34.236%; }
+.frise-t-494 { left: 34.306%; }
+.frise-t-495 { left: 34.375%; }
+.frise-t-496 { left: 34.444%; }
+.frise-t-497 { left: 34.514%; }
+.frise-t-498 { left: 34.583%; }
+.frise-t-499 { left: 34.653%; }
+.frise-t-500 { left: 34.722%; }
+.frise-t-501 { left: 34.792%; }
+.frise-t-502 { left: 34.861%; }
+.frise-t-503 { left: 34.931%; }
+.frise-t-504 { left: 35.000%; }
+.frise-t-505 { left: 35.069%; }
+.frise-t-506 { left: 35.139%; }
+.frise-t-507 { left: 35.208%; }
+.frise-t-508 { left: 35.278%; }
+.frise-t-509 { left: 35.347%; }
+.frise-t-510 { left: 35.417%; }
+.frise-t-511 { left: 35.486%; }
+.frise-t-512 { left: 35.556%; }
+.frise-t-513 { left: 35.625%; }
+.frise-t-514 { left: 35.694%; }
+.frise-t-515 { left: 35.764%; }
+.frise-t-516 { left: 35.833%; }
+.frise-t-517 { left: 35.903%; }
+.frise-t-518 { left: 35.972%; }
+.frise-t-519 { left: 36.042%; }
+.frise-t-520 { left: 36.111%; }
+.frise-t-521 { left: 36.181%; }
+.frise-t-522 { left: 36.250%; }
+.frise-t-523 { left: 36.319%; }
+.frise-t-524 { left: 36.389%; }
+.frise-t-525 { left: 36.458%; }
+.frise-t-526 { left: 36.528%; }
+.frise-t-527 { left: 36.597%; }
+.frise-t-528 { left: 36.667%; }
+.frise-t-529 { left: 36.736%; }
+.frise-t-530 { left: 36.806%; }
+.frise-t-531 { left: 36.875%; }
+.frise-t-532 { left: 36.944%; }
+.frise-t-533 { left: 37.014%; }
+.frise-t-534 { left: 37.083%; }
+.frise-t-535 { left: 37.153%; }
+.frise-t-536 { left: 37.222%; }
+.frise-t-537 { left: 37.292%; }
+.frise-t-538 { left: 37.361%; }
+.frise-t-539 { left: 37.431%; }
+.frise-t-540 { left: 37.500%; }
+.frise-t-541 { left: 37.569%; }
+.frise-t-542 { left: 37.639%; }
+.frise-t-543 { left: 37.708%; }
+.frise-t-544 { left: 37.778%; }
+.frise-t-545 { left: 37.847%; }
+.frise-t-546 { left: 37.917%; }
+.frise-t-547 { left: 37.986%; }
+.frise-t-548 { left: 38.056%; }
+.frise-t-549 { left: 38.125%; }
+.frise-t-550 { left: 38.194%; }
+.frise-t-551 { left: 38.264%; }
+.frise-t-552 { left: 38.333%; }
+.frise-t-553 { left: 38.403%; }
+.frise-t-554 { left: 38.472%; }
+.frise-t-555 { left: 38.542%; }
+.frise-t-556 { left: 38.611%; }
+.frise-t-557 { left: 38.681%; }
+.frise-t-558 { left: 38.750%; }
+.frise-t-559 { left: 38.819%; }
+.frise-t-560 { left: 38.889%; }
+.frise-t-561 { left: 38.958%; }
+.frise-t-562 { left: 39.028%; }
+.frise-t-563 { left: 39.097%; }
+.frise-t-564 { left: 39.167%; }
+.frise-t-565 { left: 39.236%; }
+.frise-t-566 { left: 39.306%; }
+.frise-t-567 { left: 39.375%; }
+.frise-t-568 { left: 39.444%; }
+.frise-t-569 { left: 39.514%; }
+.frise-t-570 { left: 39.583%; }
+.frise-t-571 { left: 39.653%; }
+.frise-t-572 { left: 39.722%; }
+.frise-t-573 { left: 39.792%; }
+.frise-t-574 { left: 39.861%; }
+.frise-t-575 { left: 39.931%; }
+.frise-t-576 { left: 40.000%; }
+.frise-t-577 { left: 40.069%; }
+.frise-t-578 { left: 40.139%; }
+.frise-t-579 { left: 40.208%; }
+.frise-t-580 { left: 40.278%; }
+.frise-t-581 { left: 40.347%; }
+.frise-t-582 { left: 40.417%; }
+.frise-t-583 { left: 40.486%; }
+.frise-t-584 { left: 40.556%; }
+.frise-t-585 { left: 40.625%; }
+.frise-t-586 { left: 40.694%; }
+.frise-t-587 { left: 40.764%; }
+.frise-t-588 { left: 40.833%; }
+.frise-t-589 { left: 40.903%; }
+.frise-t-590 { left: 40.972%; }
+.frise-t-591 { left: 41.042%; }
+.frise-t-592 { left: 41.111%; }
+.frise-t-593 { left: 41.181%; }
+.frise-t-594 { left: 41.250%; }
+.frise-t-595 { left: 41.319%; }
+.frise-t-596 { left: 41.389%; }
+.frise-t-597 { left: 41.458%; }
+.frise-t-598 { left: 41.528%; }
+.frise-t-599 { left: 41.597%; }
+.frise-t-600 { left: 41.667%; }
+.frise-t-601 { left: 41.736%; }
+.frise-t-602 { left: 41.806%; }
+.frise-t-603 { left: 41.875%; }
+.frise-t-604 { left: 41.944%; }
+.frise-t-605 { left: 42.014%; }
+.frise-t-606 { left: 42.083%; }
+.frise-t-607 { left: 42.153%; }
+.frise-t-608 { left: 42.222%; }
+.frise-t-609 { left: 42.292%; }
+.frise-t-610 { left: 42.361%; }
+.frise-t-611 { left: 42.431%; }
+.frise-t-612 { left: 42.500%; }
+.frise-t-613 { left: 42.569%; }
+.frise-t-614 { left: 42.639%; }
+.frise-t-615 { left: 42.708%; }
+.frise-t-616 { left: 42.778%; }
+.frise-t-617 { left: 42.847%; }
+.frise-t-618 { left: 42.917%; }
+.frise-t-619 { left: 42.986%; }
+.frise-t-620 { left: 43.056%; }
+.frise-t-621 { left: 43.125%; }
+.frise-t-622 { left: 43.194%; }
+.frise-t-623 { left: 43.264%; }
+.frise-t-624 { left: 43.333%; }
+.frise-t-625 { left: 43.403%; }
+.frise-t-626 { left: 43.472%; }
+.frise-t-627 { left: 43.542%; }
+.frise-t-628 { left: 43.611%; }
+.frise-t-629 { left: 43.681%; }
+.frise-t-630 { left: 43.750%; }
+.frise-t-631 { left: 43.819%; }
+.frise-t-632 { left: 43.889%; }
+.frise-t-633 { left: 43.958%; }
+.frise-t-634 { left: 44.028%; }
+.frise-t-635 { left: 44.097%; }
+.frise-t-636 { left: 44.167%; }
+.frise-t-637 { left: 44.236%; }
+.frise-t-638 { left: 44.306%; }
+.frise-t-639 { left: 44.375%; }
+.frise-t-640 { left: 44.444%; }
+.frise-t-641 { left: 44.514%; }
+.frise-t-642 { left: 44.583%; }
+.frise-t-643 { left: 44.653%; }
+.frise-t-644 { left: 44.722%; }
+.frise-t-645 { left: 44.792%; }
+.frise-t-646 { left: 44.861%; }
+.frise-t-647 { left: 44.931%; }
+.frise-t-648 { left: 45.000%; }
+.frise-t-649 { left: 45.069%; }
+.frise-t-650 { left: 45.139%; }
+.frise-t-651 { left: 45.208%; }
+.frise-t-652 { left: 45.278%; }
+.frise-t-653 { left: 45.347%; }
+.frise-t-654 { left: 45.417%; }
+.frise-t-655 { left: 45.486%; }
+.frise-t-656 { left: 45.556%; }
+.frise-t-657 { left: 45.625%; }
+.frise-t-658 { left: 45.694%; }
+.frise-t-659 { left: 45.764%; }
+.frise-t-660 { left: 45.833%; }
+.frise-t-661 { left: 45.903%; }
+.frise-t-662 { left: 45.972%; }
+.frise-t-663 { left: 46.042%; }
+.frise-t-664 { left: 46.111%; }
+.frise-t-665 { left: 46.181%; }
+.frise-t-666 { left: 46.250%; }
+.frise-t-667 { left: 46.319%; }
+.frise-t-668 { left: 46.389%; }
+.frise-t-669 { left: 46.458%; }
+.frise-t-670 { left: 46.528%; }
+.frise-t-671 { left: 46.597%; }
+.frise-t-672 { left: 46.667%; }
+.frise-t-673 { left: 46.736%; }
+.frise-t-674 { left: 46.806%; }
+.frise-t-675 { left: 46.875%; }
+.frise-t-676 { left: 46.944%; }
+.frise-t-677 { left: 47.014%; }
+.frise-t-678 { left: 47.083%; }
+.frise-t-679 { left: 47.153%; }
+.frise-t-680 { left: 47.222%; }
+.frise-t-681 { left: 47.292%; }
+.frise-t-682 { left: 47.361%; }
+.frise-t-683 { left: 47.431%; }
+.frise-t-684 { left: 47.500%; }
+.frise-t-685 { left: 47.569%; }
+.frise-t-686 { left: 47.639%; }
+.frise-t-687 { left: 47.708%; }
+.frise-t-688 { left: 47.778%; }
+.frise-t-689 { left: 47.847%; }
+.frise-t-690 { left: 47.917%; }
+.frise-t-691 { left: 47.986%; }
+.frise-t-692 { left: 48.056%; }
+.frise-t-693 { left: 48.125%; }
+.frise-t-694 { left: 48.194%; }
+.frise-t-695 { left: 48.264%; }
+.frise-t-696 { left: 48.333%; }
+.frise-t-697 { left: 48.403%; }
+.frise-t-698 { left: 48.472%; }
+.frise-t-699 { left: 48.542%; }
+.frise-t-700 { left: 48.611%; }
+.frise-t-701 { left: 48.681%; }
+.frise-t-702 { left: 48.750%; }
+.frise-t-703 { left: 48.819%; }
+.frise-t-704 { left: 48.889%; }
+.frise-t-705 { left: 48.958%; }
+.frise-t-706 { left: 49.028%; }
+.frise-t-707 { left: 49.097%; }
+.frise-t-708 { left: 49.167%; }
+.frise-t-709 { left: 49.236%; }
+.frise-t-710 { left: 49.306%; }
+.frise-t-711 { left: 49.375%; }
+.frise-t-712 { left: 49.444%; }
+.frise-t-713 { left: 49.514%; }
+.frise-t-714 { left: 49.583%; }
+.frise-t-715 { left: 49.653%; }
+.frise-t-716 { left: 49.722%; }
+.frise-t-717 { left: 49.792%; }
+.frise-t-718 { left: 49.861%; }
+.frise-t-719 { left: 49.931%; }
+.frise-t-720 { left: 50.000%; }
+.frise-t-721 { left: 50.069%; }
+.frise-t-722 { left: 50.139%; }
+.frise-t-723 { left: 50.208%; }
+.frise-t-724 { left: 50.278%; }
+.frise-t-725 { left: 50.347%; }
+.frise-t-726 { left: 50.417%; }
+.frise-t-727 { left: 50.486%; }
+.frise-t-728 { left: 50.556%; }
+.frise-t-729 { left: 50.625%; }
+.frise-t-730 { left: 50.694%; }
+.frise-t-731 { left: 50.764%; }
+.frise-t-732 { left: 50.833%; }
+.frise-t-733 { left: 50.903%; }
+.frise-t-734 { left: 50.972%; }
+.frise-t-735 { left: 51.042%; }
+.frise-t-736 { left: 51.111%; }
+.frise-t-737 { left: 51.181%; }
+.frise-t-738 { left: 51.250%; }
+.frise-t-739 { left: 51.319%; }
+.frise-t-740 { left: 51.389%; }
+.frise-t-741 { left: 51.458%; }
+.frise-t-742 { left: 51.528%; }
+.frise-t-743 { left: 51.597%; }
+.frise-t-744 { left: 51.667%; }
+.frise-t-745 { left: 51.736%; }
+.frise-t-746 { left: 51.806%; }
+.frise-t-747 { left: 51.875%; }
+.frise-t-748 { left: 51.944%; }
+.frise-t-749 { left: 52.014%; }
+.frise-t-750 { left: 52.083%; }
+.frise-t-751 { left: 52.153%; }
+.frise-t-752 { left: 52.222%; }
+.frise-t-753 { left: 52.292%; }
+.frise-t-754 { left: 52.361%; }
+.frise-t-755 { left: 52.431%; }
+.frise-t-756 { left: 52.500%; }
+.frise-t-757 { left: 52.569%; }
+.frise-t-758 { left: 52.639%; }
+.frise-t-759 { left: 52.708%; }
+.frise-t-760 { left: 52.778%; }
+.frise-t-761 { left: 52.847%; }
+.frise-t-762 { left: 52.917%; }
+.frise-t-763 { left: 52.986%; }
+.frise-t-764 { left: 53.056%; }
+.frise-t-765 { left: 53.125%; }
+.frise-t-766 { left: 53.194%; }
+.frise-t-767 { left: 53.264%; }
+.frise-t-768 { left: 53.333%; }
+.frise-t-769 { left: 53.403%; }
+.frise-t-770 { left: 53.472%; }
+.frise-t-771 { left: 53.542%; }
+.frise-t-772 { left: 53.611%; }
+.frise-t-773 { left: 53.681%; }
+.frise-t-774 { left: 53.750%; }
+.frise-t-775 { left: 53.819%; }
+.frise-t-776 { left: 53.889%; }
+.frise-t-777 { left: 53.958%; }
+.frise-t-778 { left: 54.028%; }
+.frise-t-779 { left: 54.097%; }
+.frise-t-780 { left: 54.167%; }
+.frise-t-781 { left: 54.236%; }
+.frise-t-782 { left: 54.306%; }
+.frise-t-783 { left: 54.375%; }
+.frise-t-784 { left: 54.444%; }
+.frise-t-785 { left: 54.514%; }
+.frise-t-786 { left: 54.583%; }
+.frise-t-787 { left: 54.653%; }
+.frise-t-788 { left: 54.722%; }
+.frise-t-789 { left: 54.792%; }
+.frise-t-790 { left: 54.861%; }
+.frise-t-791 { left: 54.931%; }
+.frise-t-792 { left: 55.000%; }
+.frise-t-793 { left: 55.069%; }
+.frise-t-794 { left: 55.139%; }
+.frise-t-795 { left: 55.208%; }
+.frise-t-796 { left: 55.278%; }
+.frise-t-797 { left: 55.347%; }
+.frise-t-798 { left: 55.417%; }
+.frise-t-799 { left: 55.486%; }
+.frise-t-800 { left: 55.556%; }
+.frise-t-801 { left: 55.625%; }
+.frise-t-802 { left: 55.694%; }
+.frise-t-803 { left: 55.764%; }
+.frise-t-804 { left: 55.833%; }
+.frise-t-805 { left: 55.903%; }
+.frise-t-806 { left: 55.972%; }
+.frise-t-807 { left: 56.042%; }
+.frise-t-808 { left: 56.111%; }
+.frise-t-809 { left: 56.181%; }
+.frise-t-810 { left: 56.250%; }
+.frise-t-811 { left: 56.319%; }
+.frise-t-812 { left: 56.389%; }
+.frise-t-813 { left: 56.458%; }
+.frise-t-814 { left: 56.528%; }
+.frise-t-815 { left: 56.597%; }
+.frise-t-816 { left: 56.667%; }
+.frise-t-817 { left: 56.736%; }
+.frise-t-818 { left: 56.806%; }
+.frise-t-819 { left: 56.875%; }
+.frise-t-820 { left: 56.944%; }
+.frise-t-821 { left: 57.014%; }
+.frise-t-822 { left: 57.083%; }
+.frise-t-823 { left: 57.153%; }
+.frise-t-824 { left: 57.222%; }
+.frise-t-825 { left: 57.292%; }
+.frise-t-826 { left: 57.361%; }
+.frise-t-827 { left: 57.431%; }
+.frise-t-828 { left: 57.500%; }
+.frise-t-829 { left: 57.569%; }
+.frise-t-830 { left: 57.639%; }
+.frise-t-831 { left: 57.708%; }
+.frise-t-832 { left: 57.778%; }
+.frise-t-833 { left: 57.847%; }
+.frise-t-834 { left: 57.917%; }
+.frise-t-835 { left: 57.986%; }
+.frise-t-836 { left: 58.056%; }
+.frise-t-837 { left: 58.125%; }
+.frise-t-838 { left: 58.194%; }
+.frise-t-839 { left: 58.264%; }
+.frise-t-840 { left: 58.333%; }
+.frise-t-841 { left: 58.403%; }
+.frise-t-842 { left: 58.472%; }
+.frise-t-843 { left: 58.542%; }
+.frise-t-844 { left: 58.611%; }
+.frise-t-845 { left: 58.681%; }
+.frise-t-846 { left: 58.750%; }
+.frise-t-847 { left: 58.819%; }
+.frise-t-848 { left: 58.889%; }
+.frise-t-849 { left: 58.958%; }
+.frise-t-850 { left: 59.028%; }
+.frise-t-851 { left: 59.097%; }
+.frise-t-852 { left: 59.167%; }
+.frise-t-853 { left: 59.236%; }
+.frise-t-854 { left: 59.306%; }
+.frise-t-855 { left: 59.375%; }
+.frise-t-856 { left: 59.444%; }
+.frise-t-857 { left: 59.514%; }
+.frise-t-858 { left: 59.583%; }
+.frise-t-859 { left: 59.653%; }
+.frise-t-860 { left: 59.722%; }
+.frise-t-861 { left: 59.792%; }
+.frise-t-862 { left: 59.861%; }
+.frise-t-863 { left: 59.931%; }
+.frise-t-864 { left: 60.000%; }
+.frise-t-865 { left: 60.069%; }
+.frise-t-866 { left: 60.139%; }
+.frise-t-867 { left: 60.208%; }
+.frise-t-868 { left: 60.278%; }
+.frise-t-869 { left: 60.347%; }
+.frise-t-870 { left: 60.417%; }
+.frise-t-871 { left: 60.486%; }
+.frise-t-872 { left: 60.556%; }
+.frise-t-873 { left: 60.625%; }
+.frise-t-874 { left: 60.694%; }
+.frise-t-875 { left: 60.764%; }
+.frise-t-876 { left: 60.833%; }
+.frise-t-877 { left: 60.903%; }
+.frise-t-878 { left: 60.972%; }
+.frise-t-879 { left: 61.042%; }
+.frise-t-880 { left: 61.111%; }
+.frise-t-881 { left: 61.181%; }
+.frise-t-882 { left: 61.250%; }
+.frise-t-883 { left: 61.319%; }
+.frise-t-884 { left: 61.389%; }
+.frise-t-885 { left: 61.458%; }
+.frise-t-886 { left: 61.528%; }
+.frise-t-887 { left: 61.597%; }
+.frise-t-888 { left: 61.667%; }
+.frise-t-889 { left: 61.736%; }
+.frise-t-890 { left: 61.806%; }
+.frise-t-891 { left: 61.875%; }
+.frise-t-892 { left: 61.944%; }
+.frise-t-893 { left: 62.014%; }
+.frise-t-894 { left: 62.083%; }
+.frise-t-895 { left: 62.153%; }
+.frise-t-896 { left: 62.222%; }
+.frise-t-897 { left: 62.292%; }
+.frise-t-898 { left: 62.361%; }
+.frise-t-899 { left: 62.431%; }
+.frise-t-900 { left: 62.500%; }
+.frise-t-901 { left: 62.569%; }
+.frise-t-902 { left: 62.639%; }
+.frise-t-903 { left: 62.708%; }
+.frise-t-904 { left: 62.778%; }
+.frise-t-905 { left: 62.847%; }
+.frise-t-906 { left: 62.917%; }
+.frise-t-907 { left: 62.986%; }
+.frise-t-908 { left: 63.056%; }
+.frise-t-909 { left: 63.125%; }
+.frise-t-910 { left: 63.194%; }
+.frise-t-911 { left: 63.264%; }
+.frise-t-912 { left: 63.333%; }
+.frise-t-913 { left: 63.403%; }
+.frise-t-914 { left: 63.472%; }
+.frise-t-915 { left: 63.542%; }
+.frise-t-916 { left: 63.611%; }
+.frise-t-917 { left: 63.681%; }
+.frise-t-918 { left: 63.750%; }
+.frise-t-919 { left: 63.819%; }
+.frise-t-920 { left: 63.889%; }
+.frise-t-921 { left: 63.958%; }
+.frise-t-922 { left: 64.028%; }
+.frise-t-923 { left: 64.097%; }
+.frise-t-924 { left: 64.167%; }
+.frise-t-925 { left: 64.236%; }
+.frise-t-926 { left: 64.306%; }
+.frise-t-927 { left: 64.375%; }
+.frise-t-928 { left: 64.444%; }
+.frise-t-929 { left: 64.514%; }
+.frise-t-930 { left: 64.583%; }
+.frise-t-931 { left: 64.653%; }
+.frise-t-932 { left: 64.722%; }
+.frise-t-933 { left: 64.792%; }
+.frise-t-934 { left: 64.861%; }
+.frise-t-935 { left: 64.931%; }
+.frise-t-936 { left: 65.000%; }
+.frise-t-937 { left: 65.069%; }
+.frise-t-938 { left: 65.139%; }
+.frise-t-939 { left: 65.208%; }
+.frise-t-940 { left: 65.278%; }
+.frise-t-941 { left: 65.347%; }
+.frise-t-942 { left: 65.417%; }
+.frise-t-943 { left: 65.486%; }
+.frise-t-944 { left: 65.556%; }
+.frise-t-945 { left: 65.625%; }
+.frise-t-946 { left: 65.694%; }
+.frise-t-947 { left: 65.764%; }
+.frise-t-948 { left: 65.833%; }
+.frise-t-949 { left: 65.903%; }
+.frise-t-950 { left: 65.972%; }
+.frise-t-951 { left: 66.042%; }
+.frise-t-952 { left: 66.111%; }
+.frise-t-953 { left: 66.181%; }
+.frise-t-954 { left: 66.250%; }
+.frise-t-955 { left: 66.319%; }
+.frise-t-956 { left: 66.389%; }
+.frise-t-957 { left: 66.458%; }
+.frise-t-958 { left: 66.528%; }
+.frise-t-959 { left: 66.597%; }
+.frise-t-960 { left: 66.667%; }
+.frise-t-961 { left: 66.736%; }
+.frise-t-962 { left: 66.806%; }
+.frise-t-963 { left: 66.875%; }
+.frise-t-964 { left: 66.944%; }
+.frise-t-965 { left: 67.014%; }
+.frise-t-966 { left: 67.083%; }
+.frise-t-967 { left: 67.153%; }
+.frise-t-968 { left: 67.222%; }
+.frise-t-969 { left: 67.292%; }
+.frise-t-970 { left: 67.361%; }
+.frise-t-971 { left: 67.431%; }
+.frise-t-972 { left: 67.500%; }
+.frise-t-973 { left: 67.569%; }
+.frise-t-974 { left: 67.639%; }
+.frise-t-975 { left: 67.708%; }
+.frise-t-976 { left: 67.778%; }
+.frise-t-977 { left: 67.847%; }
+.frise-t-978 { left: 67.917%; }
+.frise-t-979 { left: 67.986%; }
+.frise-t-980 { left: 68.056%; }
+.frise-t-981 { left: 68.125%; }
+.frise-t-982 { left: 68.194%; }
+.frise-t-983 { left: 68.264%; }
+.frise-t-984 { left: 68.333%; }
+.frise-t-985 { left: 68.403%; }
+.frise-t-986 { left: 68.472%; }
+.frise-t-987 { left: 68.542%; }
+.frise-t-988 { left: 68.611%; }
+.frise-t-989 { left: 68.681%; }
+.frise-t-990 { left: 68.750%; }
+.frise-t-991 { left: 68.819%; }
+.frise-t-992 { left: 68.889%; }
+.frise-t-993 { left: 68.958%; }
+.frise-t-994 { left: 69.028%; }
+.frise-t-995 { left: 69.097%; }
+.frise-t-996 { left: 69.167%; }
+.frise-t-997 { left: 69.236%; }
+.frise-t-998 { left: 69.306%; }
+.frise-t-999 { left: 69.375%; }
+.frise-t-1000 { left: 69.444%; }
+.frise-t-1001 { left: 69.514%; }
+.frise-t-1002 { left: 69.583%; }
+.frise-t-1003 { left: 69.653%; }
+.frise-t-1004 { left: 69.722%; }
+.frise-t-1005 { left: 69.792%; }
+.frise-t-1006 { left: 69.861%; }
+.frise-t-1007 { left: 69.931%; }
+.frise-t-1008 { left: 70.000%; }
+.frise-t-1009 { left: 70.069%; }
+.frise-t-1010 { left: 70.139%; }
+.frise-t-1011 { left: 70.208%; }
+.frise-t-1012 { left: 70.278%; }
+.frise-t-1013 { left: 70.347%; }
+.frise-t-1014 { left: 70.417%; }
+.frise-t-1015 { left: 70.486%; }
+.frise-t-1016 { left: 70.556%; }
+.frise-t-1017 { left: 70.625%; }
+.frise-t-1018 { left: 70.694%; }
+.frise-t-1019 { left: 70.764%; }
+.frise-t-1020 { left: 70.833%; }
+.frise-t-1021 { left: 70.903%; }
+.frise-t-1022 { left: 70.972%; }
+.frise-t-1023 { left: 71.042%; }
+.frise-t-1024 { left: 71.111%; }
+.frise-t-1025 { left: 71.181%; }
+.frise-t-1026 { left: 71.250%; }
+.frise-t-1027 { left: 71.319%; }
+.frise-t-1028 { left: 71.389%; }
+.frise-t-1029 { left: 71.458%; }
+.frise-t-1030 { left: 71.528%; }
+.frise-t-1031 { left: 71.597%; }
+.frise-t-1032 { left: 71.667%; }
+.frise-t-1033 { left: 71.736%; }
+.frise-t-1034 { left: 71.806%; }
+.frise-t-1035 { left: 71.875%; }
+.frise-t-1036 { left: 71.944%; }
+.frise-t-1037 { left: 72.014%; }
+.frise-t-1038 { left: 72.083%; }
+.frise-t-1039 { left: 72.153%; }
+.frise-t-1040 { left: 72.222%; }
+.frise-t-1041 { left: 72.292%; }
+.frise-t-1042 { left: 72.361%; }
+.frise-t-1043 { left: 72.431%; }
+.frise-t-1044 { left: 72.500%; }
+.frise-t-1045 { left: 72.569%; }
+.frise-t-1046 { left: 72.639%; }
+.frise-t-1047 { left: 72.708%; }
+.frise-t-1048 { left: 72.778%; }
+.frise-t-1049 { left: 72.847%; }
+.frise-t-1050 { left: 72.917%; }
+.frise-t-1051 { left: 72.986%; }
+.frise-t-1052 { left: 73.056%; }
+.frise-t-1053 { left: 73.125%; }
+.frise-t-1054 { left: 73.194%; }
+.frise-t-1055 { left: 73.264%; }
+.frise-t-1056 { left: 73.333%; }
+.frise-t-1057 { left: 73.403%; }
+.frise-t-1058 { left: 73.472%; }
+.frise-t-1059 { left: 73.542%; }
+.frise-t-1060 { left: 73.611%; }
+.frise-t-1061 { left: 73.681%; }
+.frise-t-1062 { left: 73.750%; }
+.frise-t-1063 { left: 73.819%; }
+.frise-t-1064 { left: 73.889%; }
+.frise-t-1065 { left: 73.958%; }
+.frise-t-1066 { left: 74.028%; }
+.frise-t-1067 { left: 74.097%; }
+.frise-t-1068 { left: 74.167%; }
+.frise-t-1069 { left: 74.236%; }
+.frise-t-1070 { left: 74.306%; }
+.frise-t-1071 { left: 74.375%; }
+.frise-t-1072 { left: 74.444%; }
+.frise-t-1073 { left: 74.514%; }
+.frise-t-1074 { left: 74.583%; }
+.frise-t-1075 { left: 74.653%; }
+.frise-t-1076 { left: 74.722%; }
+.frise-t-1077 { left: 74.792%; }
+.frise-t-1078 { left: 74.861%; }
+.frise-t-1079 { left: 74.931%; }
+.frise-t-1080 { left: 75.000%; }
+.frise-t-1081 { left: 75.069%; }
+.frise-t-1082 { left: 75.139%; }
+.frise-t-1083 { left: 75.208%; }
+.frise-t-1084 { left: 75.278%; }
+.frise-t-1085 { left: 75.347%; }
+.frise-t-1086 { left: 75.417%; }
+.frise-t-1087 { left: 75.486%; }
+.frise-t-1088 { left: 75.556%; }
+.frise-t-1089 { left: 75.625%; }
+.frise-t-1090 { left: 75.694%; }
+.frise-t-1091 { left: 75.764%; }
+.frise-t-1092 { left: 75.833%; }
+.frise-t-1093 { left: 75.903%; }
+.frise-t-1094 { left: 75.972%; }
+.frise-t-1095 { left: 76.042%; }
+.frise-t-1096 { left: 76.111%; }
+.frise-t-1097 { left: 76.181%; }
+.frise-t-1098 { left: 76.250%; }
+.frise-t-1099 { left: 76.319%; }
+.frise-t-1100 { left: 76.389%; }
+.frise-t-1101 { left: 76.458%; }
+.frise-t-1102 { left: 76.528%; }
+.frise-t-1103 { left: 76.597%; }
+.frise-t-1104 { left: 76.667%; }
+.frise-t-1105 { left: 76.736%; }
+.frise-t-1106 { left: 76.806%; }
+.frise-t-1107 { left: 76.875%; }
+.frise-t-1108 { left: 76.944%; }
+.frise-t-1109 { left: 77.014%; }
+.frise-t-1110 { left: 77.083%; }
+.frise-t-1111 { left: 77.153%; }
+.frise-t-1112 { left: 77.222%; }
+.frise-t-1113 { left: 77.292%; }
+.frise-t-1114 { left: 77.361%; }
+.frise-t-1115 { left: 77.431%; }
+.frise-t-1116 { left: 77.500%; }
+.frise-t-1117 { left: 77.569%; }
+.frise-t-1118 { left: 77.639%; }
+.frise-t-1119 { left: 77.708%; }
+.frise-t-1120 { left: 77.778%; }
+.frise-t-1121 { left: 77.847%; }
+.frise-t-1122 { left: 77.917%; }
+.frise-t-1123 { left: 77.986%; }
+.frise-t-1124 { left: 78.056%; }
+.frise-t-1125 { left: 78.125%; }
+.frise-t-1126 { left: 78.194%; }
+.frise-t-1127 { left: 78.264%; }
+.frise-t-1128 { left: 78.333%; }
+.frise-t-1129 { left: 78.403%; }
+.frise-t-1130 { left: 78.472%; }
+.frise-t-1131 { left: 78.542%; }
+.frise-t-1132 { left: 78.611%; }
+.frise-t-1133 { left: 78.681%; }
+.frise-t-1134 { left: 78.750%; }
+.frise-t-1135 { left: 78.819%; }
+.frise-t-1136 { left: 78.889%; }
+.frise-t-1137 { left: 78.958%; }
+.frise-t-1138 { left: 79.028%; }
+.frise-t-1139 { left: 79.097%; }
+.frise-t-1140 { left: 79.167%; }
+.frise-t-1141 { left: 79.236%; }
+.frise-t-1142 { left: 79.306%; }
+.frise-t-1143 { left: 79.375%; }
+.frise-t-1144 { left: 79.444%; }
+.frise-t-1145 { left: 79.514%; }
+.frise-t-1146 { left: 79.583%; }
+.frise-t-1147 { left: 79.653%; }
+.frise-t-1148 { left: 79.722%; }
+.frise-t-1149 { left: 79.792%; }
+.frise-t-1150 { left: 79.861%; }
+.frise-t-1151 { left: 79.931%; }
+.frise-t-1152 { left: 80.000%; }
+.frise-t-1153 { left: 80.069%; }
+.frise-t-1154 { left: 80.139%; }
+.frise-t-1155 { left: 80.208%; }
+.frise-t-1156 { left: 80.278%; }
+.frise-t-1157 { left: 80.347%; }
+.frise-t-1158 { left: 80.417%; }
+.frise-t-1159 { left: 80.486%; }
+.frise-t-1160 { left: 80.556%; }
+.frise-t-1161 { left: 80.625%; }
+.frise-t-1162 { left: 80.694%; }
+.frise-t-1163 { left: 80.764%; }
+.frise-t-1164 { left: 80.833%; }
+.frise-t-1165 { left: 80.903%; }
+.frise-t-1166 { left: 80.972%; }
+.frise-t-1167 { left: 81.042%; }
+.frise-t-1168 { left: 81.111%; }
+.frise-t-1169 { left: 81.181%; }
+.frise-t-1170 { left: 81.250%; }
+.frise-t-1171 { left: 81.319%; }
+.frise-t-1172 { left: 81.389%; }
+.frise-t-1173 { left: 81.458%; }
+.frise-t-1174 { left: 81.528%; }
+.frise-t-1175 { left: 81.597%; }
+.frise-t-1176 { left: 81.667%; }
+.frise-t-1177 { left: 81.736%; }
+.frise-t-1178 { left: 81.806%; }
+.frise-t-1179 { left: 81.875%; }
+.frise-t-1180 { left: 81.944%; }
+.frise-t-1181 { left: 82.014%; }
+.frise-t-1182 { left: 82.083%; }
+.frise-t-1183 { left: 82.153%; }
+.frise-t-1184 { left: 82.222%; }
+.frise-t-1185 { left: 82.292%; }
+.frise-t-1186 { left: 82.361%; }
+.frise-t-1187 { left: 82.431%; }
+.frise-t-1188 { left: 82.500%; }
+.frise-t-1189 { left: 82.569%; }
+.frise-t-1190 { left: 82.639%; }
+.frise-t-1191 { left: 82.708%; }
+.frise-t-1192 { left: 82.778%; }
+.frise-t-1193 { left: 82.847%; }
+.frise-t-1194 { left: 82.917%; }
+.frise-t-1195 { left: 82.986%; }
+.frise-t-1196 { left: 83.056%; }
+.frise-t-1197 { left: 83.125%; }
+.frise-t-1198 { left: 83.194%; }
+.frise-t-1199 { left: 83.264%; }
+.frise-t-1200 { left: 83.333%; }
+.frise-t-1201 { left: 83.403%; }
+.frise-t-1202 { left: 83.472%; }
+.frise-t-1203 { left: 83.542%; }
+.frise-t-1204 { left: 83.611%; }
+.frise-t-1205 { left: 83.681%; }
+.frise-t-1206 { left: 83.750%; }
+.frise-t-1207 { left: 83.819%; }
+.frise-t-1208 { left: 83.889%; }
+.frise-t-1209 { left: 83.958%; }
+.frise-t-1210 { left: 84.028%; }
+.frise-t-1211 { left: 84.097%; }
+.frise-t-1212 { left: 84.167%; }
+.frise-t-1213 { left: 84.236%; }
+.frise-t-1214 { left: 84.306%; }
+.frise-t-1215 { left: 84.375%; }
+.frise-t-1216 { left: 84.444%; }
+.frise-t-1217 { left: 84.514%; }
+.frise-t-1218 { left: 84.583%; }
+.frise-t-1219 { left: 84.653%; }
+.frise-t-1220 { left: 84.722%; }
+.frise-t-1221 { left: 84.792%; }
+.frise-t-1222 { left: 84.861%; }
+.frise-t-1223 { left: 84.931%; }
+.frise-t-1224 { left: 85.000%; }
+.frise-t-1225 { left: 85.069%; }
+.frise-t-1226 { left: 85.139%; }
+.frise-t-1227 { left: 85.208%; }
+.frise-t-1228 { left: 85.278%; }
+.frise-t-1229 { left: 85.347%; }
+.frise-t-1230 { left: 85.417%; }
+.frise-t-1231 { left: 85.486%; }
+.frise-t-1232 { left: 85.556%; }
+.frise-t-1233 { left: 85.625%; }
+.frise-t-1234 { left: 85.694%; }
+.frise-t-1235 { left: 85.764%; }
+.frise-t-1236 { left: 85.833%; }
+.frise-t-1237 { left: 85.903%; }
+.frise-t-1238 { left: 85.972%; }
+.frise-t-1239 { left: 86.042%; }
+.frise-t-1240 { left: 86.111%; }
+.frise-t-1241 { left: 86.181%; }
+.frise-t-1242 { left: 86.250%; }
+.frise-t-1243 { left: 86.319%; }
+.frise-t-1244 { left: 86.389%; }
+.frise-t-1245 { left: 86.458%; }
+.frise-t-1246 { left: 86.528%; }
+.frise-t-1247 { left: 86.597%; }
+.frise-t-1248 { left: 86.667%; }
+.frise-t-1249 { left: 86.736%; }
+.frise-t-1250 { left: 86.806%; }
+.frise-t-1251 { left: 86.875%; }
+.frise-t-1252 { left: 86.944%; }
+.frise-t-1253 { left: 87.014%; }
+.frise-t-1254 { left: 87.083%; }
+.frise-t-1255 { left: 87.153%; }
+.frise-t-1256 { left: 87.222%; }
+.frise-t-1257 { left: 87.292%; }
+.frise-t-1258 { left: 87.361%; }
+.frise-t-1259 { left: 87.431%; }
+.frise-t-1260 { left: 87.500%; }
+.frise-t-1261 { left: 87.569%; }
+.frise-t-1262 { left: 87.639%; }
+.frise-t-1263 { left: 87.708%; }
+.frise-t-1264 { left: 87.778%; }
+.frise-t-1265 { left: 87.847%; }
+.frise-t-1266 { left: 87.917%; }
+.frise-t-1267 { left: 87.986%; }
+.frise-t-1268 { left: 88.056%; }
+.frise-t-1269 { left: 88.125%; }
+.frise-t-1270 { left: 88.194%; }
+.frise-t-1271 { left: 88.264%; }
+.frise-t-1272 { left: 88.333%; }
+.frise-t-1273 { left: 88.403%; }
+.frise-t-1274 { left: 88.472%; }
+.frise-t-1275 { left: 88.542%; }
+.frise-t-1276 { left: 88.611%; }
+.frise-t-1277 { left: 88.681%; }
+.frise-t-1278 { left: 88.750%; }
+.frise-t-1279 { left: 88.819%; }
+.frise-t-1280 { left: 88.889%; }
+.frise-t-1281 { left: 88.958%; }
+.frise-t-1282 { left: 89.028%; }
+.frise-t-1283 { left: 89.097%; }
+.frise-t-1284 { left: 89.167%; }
+.frise-t-1285 { left: 89.236%; }
+.frise-t-1286 { left: 89.306%; }
+.frise-t-1287 { left: 89.375%; }
+.frise-t-1288 { left: 89.444%; }
+.frise-t-1289 { left: 89.514%; }
+.frise-t-1290 { left: 89.583%; }
+.frise-t-1291 { left: 89.653%; }
+.frise-t-1292 { left: 89.722%; }
+.frise-t-1293 { left: 89.792%; }
+.frise-t-1294 { left: 89.861%; }
+.frise-t-1295 { left: 89.931%; }
+.frise-t-1296 { left: 90.000%; }
+.frise-t-1297 { left: 90.069%; }
+.frise-t-1298 { left: 90.139%; }
+.frise-t-1299 { left: 90.208%; }
+.frise-t-1300 { left: 90.278%; }
+.frise-t-1301 { left: 90.347%; }
+.frise-t-1302 { left: 90.417%; }
+.frise-t-1303 { left: 90.486%; }
+.frise-t-1304 { left: 90.556%; }
+.frise-t-1305 { left: 90.625%; }
+.frise-t-1306 { left: 90.694%; }
+.frise-t-1307 { left: 90.764%; }
+.frise-t-1308 { left: 90.833%; }
+.frise-t-1309 { left: 90.903%; }
+.frise-t-1310 { left: 90.972%; }
+.frise-t-1311 { left: 91.042%; }
+.frise-t-1312 { left: 91.111%; }
+.frise-t-1313 { left: 91.181%; }
+.frise-t-1314 { left: 91.250%; }
+.frise-t-1315 { left: 91.319%; }
+.frise-t-1316 { left: 91.389%; }
+.frise-t-1317 { left: 91.458%; }
+.frise-t-1318 { left: 91.528%; }
+.frise-t-1319 { left: 91.597%; }
+.frise-t-1320 { left: 91.667%; }
+.frise-t-1321 { left: 91.736%; }
+.frise-t-1322 { left: 91.806%; }
+.frise-t-1323 { left: 91.875%; }
+.frise-t-1324 { left: 91.944%; }
+.frise-t-1325 { left: 92.014%; }
+.frise-t-1326 { left: 92.083%; }
+.frise-t-1327 { left: 92.153%; }
+.frise-t-1328 { left: 92.222%; }
+.frise-t-1329 { left: 92.292%; }
+.frise-t-1330 { left: 92.361%; }
+.frise-t-1331 { left: 92.431%; }
+.frise-t-1332 { left: 92.500%; }
+.frise-t-1333 { left: 92.569%; }
+.frise-t-1334 { left: 92.639%; }
+.frise-t-1335 { left: 92.708%; }
+.frise-t-1336 { left: 92.778%; }
+.frise-t-1337 { left: 92.847%; }
+.frise-t-1338 { left: 92.917%; }
+.frise-t-1339 { left: 92.986%; }
+.frise-t-1340 { left: 93.056%; }
+.frise-t-1341 { left: 93.125%; }
+.frise-t-1342 { left: 93.194%; }
+.frise-t-1343 { left: 93.264%; }
+.frise-t-1344 { left: 93.333%; }
+.frise-t-1345 { left: 93.403%; }
+.frise-t-1346 { left: 93.472%; }
+.frise-t-1347 { left: 93.542%; }
+.frise-t-1348 { left: 93.611%; }
+.frise-t-1349 { left: 93.681%; }
+.frise-t-1350 { left: 93.750%; }
+.frise-t-1351 { left: 93.819%; }
+.frise-t-1352 { left: 93.889%; }
+.frise-t-1353 { left: 93.958%; }
+.frise-t-1354 { left: 94.028%; }
+.frise-t-1355 { left: 94.097%; }
+.frise-t-1356 { left: 94.167%; }
+.frise-t-1357 { left: 94.236%; }
+.frise-t-1358 { left: 94.306%; }
+.frise-t-1359 { left: 94.375%; }
+.frise-t-1360 { left: 94.444%; }
+.frise-t-1361 { left: 94.514%; }
+.frise-t-1362 { left: 94.583%; }
+.frise-t-1363 { left: 94.653%; }
+.frise-t-1364 { left: 94.722%; }
+.frise-t-1365 { left: 94.792%; }
+.frise-t-1366 { left: 94.861%; }
+.frise-t-1367 { left: 94.931%; }
+.frise-t-1368 { left: 95.000%; }
+.frise-t-1369 { left: 95.069%; }
+.frise-t-1370 { left: 95.139%; }
+.frise-t-1371 { left: 95.208%; }
+.frise-t-1372 { left: 95.278%; }
+.frise-t-1373 { left: 95.347%; }
+.frise-t-1374 { left: 95.417%; }
+.frise-t-1375 { left: 95.486%; }
+.frise-t-1376 { left: 95.556%; }
+.frise-t-1377 { left: 95.625%; }
+.frise-t-1378 { left: 95.694%; }
+.frise-t-1379 { left: 95.764%; }
+.frise-t-1380 { left: 95.833%; }
+.frise-t-1381 { left: 95.903%; }
+.frise-t-1382 { left: 95.972%; }
+.frise-t-1383 { left: 96.042%; }
+.frise-t-1384 { left: 96.111%; }
+.frise-t-1385 { left: 96.181%; }
+.frise-t-1386 { left: 96.250%; }
+.frise-t-1387 { left: 96.319%; }
+.frise-t-1388 { left: 96.389%; }
+.frise-t-1389 { left: 96.458%; }
+.frise-t-1390 { left: 96.528%; }
+.frise-t-1391 { left: 96.597%; }
+.frise-t-1392 { left: 96.667%; }
+.frise-t-1393 { left: 96.736%; }
+.frise-t-1394 { left: 96.806%; }
+.frise-t-1395 { left: 96.875%; }
+.frise-t-1396 { left: 96.944%; }
+.frise-t-1397 { left: 97.014%; }
+.frise-t-1398 { left: 97.083%; }
+.frise-t-1399 { left: 97.153%; }
+.frise-t-1400 { left: 97.222%; }
+.frise-t-1401 { left: 97.292%; }
+.frise-t-1402 { left: 97.361%; }
+.frise-t-1403 { left: 97.431%; }
+.frise-t-1404 { left: 97.500%; }
+.frise-t-1405 { left: 97.569%; }
+.frise-t-1406 { left: 97.639%; }
+.frise-t-1407 { left: 97.708%; }
+.frise-t-1408 { left: 97.778%; }
+.frise-t-1409 { left: 97.847%; }
+.frise-t-1410 { left: 97.917%; }
+.frise-t-1411 { left: 97.986%; }
+.frise-t-1412 { left: 98.056%; }
+.frise-t-1413 { left: 98.125%; }
+.frise-t-1414 { left: 98.194%; }
+.frise-t-1415 { left: 98.264%; }
+.frise-t-1416 { left: 98.333%; }
+.frise-t-1417 { left: 98.403%; }
+.frise-t-1418 { left: 98.472%; }
+.frise-t-1419 { left: 98.542%; }
+.frise-t-1420 { left: 98.611%; }
+.frise-t-1421 { left: 98.681%; }
+.frise-t-1422 { left: 98.750%; }
+.frise-t-1423 { left: 98.819%; }
+.frise-t-1424 { left: 98.889%; }
+.frise-t-1425 { left: 98.958%; }
+.frise-t-1426 { left: 99.028%; }
+.frise-t-1427 { left: 99.097%; }
+.frise-t-1428 { left: 99.167%; }
+.frise-t-1429 { left: 99.236%; }
+.frise-t-1430 { left: 99.306%; }
+.frise-t-1431 { left: 99.375%; }
+.frise-t-1432 { left: 99.444%; }
+.frise-t-1433 { left: 99.514%; }
+.frise-t-1434 { left: 99.583%; }
+.frise-t-1435 { left: 99.653%; }
+.frise-t-1436 { left: 99.722%; }
+.frise-t-1437 { left: 99.792%; }
+.frise-t-1438 { left: 99.861%; }
+.frise-t-1439 { left: 99.931%; }
+.frise-t-1440 { left: 100.000%; }
+.histo-h-0 { height: 0%; }
+.histo-h-1 { height: 1%; }
+.histo-h-2 { height: 2%; }
+.histo-h-3 { height: 3%; }
+.histo-h-4 { height: 4%; }
+.histo-h-5 { height: 5%; }
+.histo-h-6 { height: 6%; }
+.histo-h-7 { height: 7%; }
+.histo-h-8 { height: 8%; }
+.histo-h-9 { height: 9%; }
+.histo-h-10 { height: 10%; }
+.histo-h-11 { height: 11%; }
+.histo-h-12 { height: 12%; }
+.histo-h-13 { height: 13%; }
+.histo-h-14 { height: 14%; }
+.histo-h-15 { height: 15%; }
+.histo-h-16 { height: 16%; }
+.histo-h-17 { height: 17%; }
+.histo-h-18 { height: 18%; }
+.histo-h-19 { height: 19%; }
+.histo-h-20 { height: 20%; }
+.histo-h-21 { height: 21%; }
+.histo-h-22 { height: 22%; }
+.histo-h-23 { height: 23%; }
+.histo-h-24 { height: 24%; }
+.histo-h-25 { height: 25%; }
+.histo-h-26 { height: 26%; }
+.histo-h-27 { height: 27%; }
+.histo-h-28 { height: 28%; }
+.histo-h-29 { height: 29%; }
+.histo-h-30 { height: 30%; }
+.histo-h-31 { height: 31%; }
+.histo-h-32 { height: 32%; }
+.histo-h-33 { height: 33%; }
+.histo-h-34 { height: 34%; }
+.histo-h-35 { height: 35%; }
+.histo-h-36 { height: 36%; }
+.histo-h-37 { height: 37%; }
+.histo-h-38 { height: 38%; }
+.histo-h-39 { height: 39%; }
+.histo-h-40 { height: 40%; }
+.histo-h-41 { height: 41%; }
+.histo-h-42 { height: 42%; }
+.histo-h-43 { height: 43%; }
+.histo-h-44 { height: 44%; }
+.histo-h-45 { height: 45%; }
+.histo-h-46 { height: 46%; }
+.histo-h-47 { height: 47%; }
+.histo-h-48 { height: 48%; }
+.histo-h-49 { height: 49%; }
+.histo-h-50 { height: 50%; }
+.histo-h-51 { height: 51%; }
+.histo-h-52 { height: 52%; }
+.histo-h-53 { height: 53%; }
+.histo-h-54 { height: 54%; }
+.histo-h-55 { height: 55%; }
+.histo-h-56 { height: 56%; }
+.histo-h-57 { height: 57%; }
+.histo-h-58 { height: 58%; }
+.histo-h-59 { height: 59%; }
+.histo-h-60 { height: 60%; }
+.histo-h-61 { height: 61%; }
+.histo-h-62 { height: 62%; }
+.histo-h-63 { height: 63%; }
+.histo-h-64 { height: 64%; }
+.histo-h-65 { height: 65%; }
+.histo-h-66 { height: 66%; }
+.histo-h-67 { height: 67%; }
+.histo-h-68 { height: 68%; }
+.histo-h-69 { height: 69%; }
+.histo-h-70 { height: 70%; }
+.histo-h-71 { height: 71%; }
+.histo-h-72 { height: 72%; }
+.histo-h-73 { height: 73%; }
+.histo-h-74 { height: 74%; }
+.histo-h-75 { height: 75%; }
+.histo-h-76 { height: 76%; }
+.histo-h-77 { height: 77%; }
+.histo-h-78 { height: 78%; }
+.histo-h-79 { height: 79%; }
+.histo-h-80 { height: 80%; }
+.histo-h-81 { height: 81%; }
+.histo-h-82 { height: 82%; }
+.histo-h-83 { height: 83%; }
+.histo-h-84 { height: 84%; }
+.histo-h-85 { height: 85%; }
+.histo-h-86 { height: 86%; }
+.histo-h-87 { height: 87%; }
+.histo-h-88 { height: 88%; }
+.histo-h-89 { height: 89%; }
+.histo-h-90 { height: 90%; }
+.histo-h-91 { height: 91%; }
+.histo-h-92 { height: 92%; }
+.histo-h-93 { height: 93%; }
+.histo-h-94 { height: 94%; }
+.histo-h-95 { height: 95%; }
+.histo-h-96 { height: 96%; }
+.histo-h-97 { height: 97%; }
+.histo-h-98 { height: 98%; }
+.histo-h-99 { height: 99%; }
+.histo-h-100 { height: 100%; }
+/* POSITIONS-FIN */

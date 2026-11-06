@@ -1,0 +1,50 @@
+{
+ "jobs": [
+  {
+   "id": "d0d0d0d0d0d1",
+   "name": "Veille quotidienne (démo)",
+   "prompt": "Résumé de démonstration.",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 8 * * *",
+    "display": "0 8 * * *"
+   },
+   "schedule_display": "0 8 * * *",
+   "enabled": true,
+   "state": "scheduled",
+   "paused_at": null,
+   "paused_reason": null,
+   "next_run_at": null,
+   "last_run_at": null,
+   "last_status": "ok",
+   "last_error": null,
+   "last_delivery_error": null,
+   "failure_streak": 0,
+   "deliver": "local",
+   "script": "",
+   "workdir": null
+  },
+  {
+   "id": "d0d0d0d0d0d2",
+   "name": "Rapport hebdomadaire (démo)",
+   "prompt": "Rapport de démonstration.",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 18 * * 5"
+   },
+   "schedule_display": "0 18 * * 5",
+   "enabled": false,
+   "state": "paused",
+   "paused_at": null,
+   "paused_reason": "démonstration",
+   "next_run_at": null,
+   "last_run_at": null,
+   "last_status": null,
+   "last_error": null,
+   "last_delivery_error": null,
+   "failure_streak": 0,
+   "deliver": "local"
+  }
+ ],
+ "updated_at": "2026-11-01T08:00:00+01:00"
+}

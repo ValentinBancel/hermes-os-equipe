@@ -1,0 +1,11 @@
+{
+    "The provided two factor authentication code was invalid.": "Code incorrect ou expiré.",
+    "The provided two factor recovery code was invalid.": "Code de secours invalide ou déjà utilisé.",
+    "Too Many Requests": "Trop de tentatives",
+    "Not Found": "Page introuvable",
+    "Forbidden": "Accès refusé",
+    "Page Expired": "Page expirée",
+    "Server Error": "Erreur du serveur",
+    "Service Unavailable": "Service indisponible",
+    "Unauthorized": "Non autorisé"
+}

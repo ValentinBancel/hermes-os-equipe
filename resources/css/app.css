@@ -1,0 +1,124 @@
+/*
+ * hermes-os — DA-7 « Épure » (validée le 03/11/2026).
+ * Jetons : design-system/tokens.css (SEULE source). Composants : design-system/composants.css. Règles : DA-VALIDEE.md.
+ * Ce fichier ne déclare AUCUNE valeur de couleur : il branche le design system et ajoute les seules règles propres à
+ * l'application, écrites exclusivement avec les jetons.
+ * CSP : aucun style en ligne ; les positions calculées passent par des classes générées (.frise-t-N, .histo-h-N).
+ */
+@import 'tailwindcss';
+@import '../../design-system/tokens.css';
+/* Couche « components » : sinon le reset non layered de composants.css (*{margin:0;padding:0}) écrase toutes les
+   utilitaires Tailwind d'espacement (pt-*, mt-*), ce qui collait le texte des écrans imposés sous l'arc (dc m6 L3). */
+@import '../../design-system/composants.css' layer(components);
+
+@source '../../storage/framework/views/*.php';
+@source '../../app/Interface';
+
+@layer base {
+    [x-cloak] { display: none !important; }
+}
+
+@layer components {
+    /* Texte Markdown d'un message (Messagerie) : le reset de Tailwind retire marges et puces ; on rend les seules
+       règles de lecture, avec les jetons (aucune forme nouvelle). */
+    .md { font-size: var(--texte-confort); line-height: 1.5; margin-top: var(--espace-1); overflow-wrap: anywhere; }
+    .md > * + * { margin-top: var(--espace-3); }
+    .md ul { list-style: disc; padding-left: var(--espace-5); }
+    .md ol { list-style: decimal; padding-left: var(--espace-5); }
+    .md strong { font-weight: var(--poids-fort); }
+    .md pre { white-space: pre-wrap; }
+
+    /* Données figées (pont injoignable) : seul ce qui est périmé passe en gris (chiffres, points de la frise,
+       histogramme) ; le rouge reste réservé aux erreurs (DA-VALIDEE) et « Hermes ne répond pas » dit la périmation. */
+    .fige :is(.compteurs b, .chiffre-grand b) { color: var(--couleur-gris); }
+    .fige .frise-point:not(.echec), .fige .histo i { background: var(--couleur-gris-point); }
+    .fige a { text-decoration-style: dotted; }
+}
+
+/* ============ Ajustements DA-7 propres à l'application (hors couche : priment sur composants.css) ============ */
+/* Sprite d'icônes : hors flux et sans taille, mais rendu (pas de display:none, les <use> doivent se résoudre). */
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+/* La barre (et son menu mobile) passe au-dessus des surfaces en verre du contenu, qui créent leur propre empilement. */
+.barre { position: relative; z-index: 10; }
+/* Accueil : le compteur « en cours » mène aux sessions actives (la maquette n'a pas de liste « En cours »). Même rendu
+   que les autres compteurs ; libellé souligné comme le lien de la ligne d'état, cible = toute la case (> 40 px). */
+.compteur-lien { display: block; }
+.compteur-lien span { text-decoration: underline; text-underline-offset: 3px; }
+.compteur-lien:hover span { color: var(--couleur-indigo); }
+/* Titres : retour à la ligne permis (les groupes « 3 erreurs depuis 24 h » sont déjà insécables) ; nowrap réservé aux compteurs. */
+h1 span { white-space: normal; }
+/* Planifiées : colonne d'actions de largeur fixe, alignée à droite sur toutes les lignes ; « Ouvrir » principal,
+   « Lancer » / « Suspendre » / « Reprendre » secondaires (texte secondaire, poids normal). */
+@media (min-width: 1101px) {
+  .tache { grid-template-columns: minmax(0, 2fr) minmax(0, 2.1fr) minmax(0, 1.5fr) minmax(0, 1.4fr) var(--colonne-actions); }
+}
+.tache-actions { justify-content: flex-end; align-items: center; }
+/* dc L2 : actions toujours visibles à 1440 (composants.css les masque hors survol : invisibles au clavier et au toucher). */
+.tache-actions { opacity: 1; }
+.tache-actions button { color: var(--couleur-gris); font-weight: var(--poids-normal); }
+.tache-actions button:hover { color: var(--couleur-indigo); }
+.tache-actions .tache-ouvrir { color: var(--couleur-indigo); font-weight: var(--poids-moyen); }
+/* Compte : bouton de fin de section espacé du dernier filet comme les autres formulaires. */
+.section > .formulaire-actions { margin-top: var(--espace-6); }
+
+/* Comptes (L3) : état + action à droite d'une ligne .compte ; compte désactivé grisé (même rendu que .tache.suspendue). */
+.compte-etat { display: flex; align-items: baseline; justify-content: flex-end; gap: var(--espace-4); }
+.compte.desactive .compte-qui b, .compte.desactive .compte-qui small { color: var(--couleur-gris-doux); }
+.compte.desactive .avatar { opacity: .45; }
+/* Désactiver / Réactiver : même lien texte (la gravité est portée par la confirmation TOTP), zone ≥ 44 px (dc m1). */
+.compte-action { min-width: var(--espace-24); text-align: right; }
+.compte-etat .bouton-texte { display: inline-flex; align-items: center; min-height: calc(var(--espace-10) + var(--espace-1)); }
+/* Mot de passe provisoire (L3 M1) : bloc unique sous le formulaire, secret en .commande agrandie, groupes de 5. */
+.provisoire { padding: var(--espace-5) 0; border-bottom: 1px solid var(--couleur-filet); outline: none; }
+.provisoire-titre { font-weight: var(--poids-moyen); font-size: var(--texte-base); color: var(--couleur-encre); }
+.provisoire-secret { margin-top: var(--espace-3); display: flex; flex-wrap: wrap; gap: var(--espace-1) var(--espace-4); font-size: var(--texte-base); letter-spacing: .04em; }
+.provisoire-actions { display: flex; gap: var(--espace-4); margin-top: var(--espace-1); }
+.provisoire-actions .bouton-texte { display: inline-flex; align-items: center; min-height: calc(var(--espace-10) + var(--espace-1)); padding-left: 0; }
+/* Colonne de 200 px au lieu de 120 px : trois libellés tiennent sur une ligne. En dessous de 1100 px, la ligne
+   d'actions passe pleine largeur (composants.css) : on la garde alignée à droite. */
+@media (max-width: 1100px) {
+  .tache-actions { justify-content: flex-end; }
+}
+@media (max-width: 760px) {
+  /* Ligne de compte à 390 px (dc M2) : action à droite du nom, statut dessous aligné sur le texte (avatar + écart). */
+  .compte { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "qui action" "etat etat"; row-gap: 0; }
+  .compte-qui { grid-area: qui; }
+  .compte-etat { display: contents; }
+  .compte-etat time { grid-area: etat; margin-top: 0; padding-left: calc(var(--taille-avatar) + var(--ecart-avatar)); /* aligné sur l'e-mail */ }
+  .compte-etat .compte-action { grid-area: action; min-width: 0; }
+  .tache-actions { gap: var(--espace-2); }
+  .tache-actions button, .tache-actions a { display: inline-flex; align-items: center; min-height: var(--espace-10); padding: 0 var(--espace-2); }
+  /* dc m2 L2 : cibles tactiles de 40 px (Répondre / Examiner / Réessayer). */
+  .pastille-action, .etat-erreur .bouton { display: inline-flex; align-items: center; min-height: var(--espace-10); }
+}
+/* Présence en mobile (L6) : « N connectés » réaffiché s'il tient (mesuré à 390 px), sans pile d'avatars. */
+@media (max-width: 760px) { .connectes { display: flex; font-size: var(--texte-note); } }
+/* Mesuré : « 12 connectés » déborde de la barre sous 375 px ; on le masque alors (comme avant L6). */
+@media (max-width: 374px) { .connectes { display: none; } }
+/* qa m1 L4 : au-delà de 85 % de la journée, l'étiquette « maintenant » s'aligne à droite du trait (ne déborde plus). */
+.frise-maintenant.fin i { left: auto; right: 0; transform: none; }
+/* Panneau « Hermes relié » (L4 tour 2, design-critic). Uniquement des tokens existants. */
+/* M1 : hors ligne, les dernières mesures restent lisibles mais grisées ; rien n'est donné pour vérifié. */
+.panneau-relie .fige, .panneau-relie .fige .ok, .panneau-relie .fige .rouge { color: var(--couleur-gris); font-weight: var(--poids-normal); }
+/* M2 (L4) : .confirmation-panneau et .bouton-danger-plein sont désormais dans design-system/composants.css § 11 (dc m8 L4). */
+/* m1 + dc m6 L4 : commande sur deux lignes (retour avant « | ») lisible entière, sans défilement ni ellipse : les longues
+   URL passent à la ligne où il faut. */
+.panneau-relie .commande-liaison { white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; overflow-x: visible; text-overflow: clip; }
+/* m2 : le code est à saisir : cadre filet 1 px, sélection d'un clic, chiffres à chasse fixe. */
+.panneau-relie .code-appairage b { padding: var(--espace-1) var(--espace-3); border: 1px solid var(--couleur-filet); border-radius: var(--rayon-champ); user-select: all; font-variant-numeric: tabular-nums; }
+.panneau-relie .code-appairage > span { display: inline-flex; align-items: baseline; gap: var(--espace-3); }
+/* M5 (tour 3) : quand la place manque, « expire dans … » et « Copier » passent sous le code au lieu de déborder du panneau ; le code reste sur une ligne. */
+.panneau-relie .code-appairage { flex-wrap: wrap; row-gap: var(--espace-2); }
+.panneau-relie .code-appairage > span { flex-wrap: wrap; white-space: normal; }
+/* M4 : « Code expiré à HH:MM » dans la même zone et à la même hauteur que le code. */
+.panneau-relie .code-expire { min-height: calc(var(--texte-code) * 1.2 + var(--espace-2) + 2px); align-items: center; }
+.panneau-relie .code-expire span { white-space: normal; }
+/* m4 : « Générer un code » détaché du bloc commande. */
+.panneau-relie .generer-code { margin-top: var(--espace-5); }
+/* Cibles de 44 px dans ce panneau (padding invisible), « Ouvrir le journal » aligné sur le texte (m5). */
+.panneau-relie .bouton-fin, .panneau-relie .confirmation-panneau [data-annuler] { min-height: calc(var(--espace-10) + var(--espace-1)); }
+.panneau-relie .bouton-texte { display: inline-flex; align-items: center; min-height: calc(var(--espace-10) + var(--espace-1)); }
+/* Marge négative = padding : le texte du lien s'aligne sur le bord du panneau. */
+.panneau-relie .lien-journal .bouton-texte { margin-left: calc(-1 * var(--espace-1)); }
+/* dc m6 L3 : clé TOTP lisible par groupes de 4 (Outfit, chiffres tabulaires ; la chasse fixe reste réservée à la commande). */
+.cle-totp { font-variant-numeric: tabular-nums; letter-spacing: .04em; overflow-wrap: anywhere; user-select: all; }

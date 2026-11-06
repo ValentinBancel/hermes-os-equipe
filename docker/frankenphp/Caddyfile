@@ -1,0 +1,37 @@
+# FrankenPHP (Caddy + PHP) en HTTP interne sur :8080 ; TLS chez le reverse proxy. ADR 0006.
+{
+	auto_https off
+	admin off
+	persist_config off
+	skip_install_trust
+	frankenphp
+}
+
+:8080 {
+	root * /app/public
+	encode zstd br gzip
+
+	header {
+		-Server
+		-X-Powered-By
+	}
+
+	# Q1 : fichiers statiques servis par Caddy sans passer par PHP (robots.txt, /build/*, favicon) : mêmes en-têtes de
+	# discrétion que les réponses PHP (middleware EnTetesSecurite). Limité aux fichiers existants hors .php pour ne
+	# jamais doubler les en-têtes posés par Laravel.
+	@statiques {
+		file
+		not path *.php
+		not path */
+	}
+	header @statiques {
+		X-Content-Type-Options "nosniff"
+		X-Robots-Tag "noindex, nofollow"
+	}
+
+	# Assets Vite versionnés : cache long.
+	@build path /build/*
+	header @build Cache-Control "public, max-age=31536000, immutable"
+
+	php_server
+}

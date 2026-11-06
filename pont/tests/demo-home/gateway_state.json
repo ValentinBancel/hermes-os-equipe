@@ -1,0 +1,13 @@
+{
+ "kind": "hermes-gateway",
+ "gateway_state": "running",
+ "exit_reason": null,
+ "active_agents": 0,
+ "platforms": {},
+ "code_version": "0.0.0-demo",
+ "served_profiles": [
+  "default",
+  "dev",
+  "redaction"
+ ]
+}

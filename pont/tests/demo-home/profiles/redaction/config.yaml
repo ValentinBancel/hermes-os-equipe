@@ -1,0 +1,6 @@
+# Configuration de démonstration (aucune clé)
+model:
+  default: "claude-sonnet-5-5"
+  provider: anthropic
+agent:
+  max_turns: 60

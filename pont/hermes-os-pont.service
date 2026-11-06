@@ -1,0 +1,37 @@
+# hermes-os-pont — API locale en liste blanche entre la console hermes-os et Hermes (ADR 0002).
+# Unit systemd --user (utilisateur debian, uid 1000). Installation : pont/README.md.
+# Le pont ne fait que LIRE le home Hermes (~/.hermes) ; ses seules écritures passent par la CLI officielle `hermes`.
+
+[Unit]
+Description=hermes-os-pont (API locale Hermes pour la console hermes-os, socket Unix)
+Documentation=file://%h/hermes-os-pont/README.md
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/hermes-os-pont/hermes_os_pont.py \
+    --hermes-home %h/.hermes \
+    --socket %h/.local/state/hermes-os/run/pont.sock \
+    --secret-file %h/.config/hermes-os-pont/secret \
+    --hermes-bin %h/.local/bin/hermes \
+    --messagerie --messagerie-dossier %h/.local/state/hermes-os/messagerie \
+    --interlocuteurs hermes,assistant,recherche,redaction \
+    --verbeux
+Restart=on-failure
+RestartSec=5
+# Socket créé en 0660 par le pont lui-même (umask appliqué au bind).
+UMask=0077
+Environment=PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
+# Durcissement (disponible en unit --user sans privilège).
+NoNewPrivileges=yes
+LockPersonality=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+SystemCallArchitectures=native
+MemoryMax=3G
+TasksMax=512
+OOMPolicy=continue
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>hermes-os · Spécimen DA-7 « Épure »</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="composants.css">
+<link rel="stylesheet" href="specimen.css">
+</head>
+<body>
+<div class="bande"></div>
+<div class="conteneur">
+
+<header class="barre verre">
+  <a class="marque" href="#"><span class="marque-nom">hermes-os</span><span class="marque-client">pour Exemple</span></a>
+  <nav class="nav" aria-label="Navigation"><a href="#" class="actif">Accueil</a><a href="#">Planifiées</a><a href="#">Consommation</a><a href="#">Pôles</a><a href="#">Coffre</a><a href="#">Messagerie</a></nav>
+  <div class="presence"><div class="connectes"><i class="point-ok"></i><span>3&nbsp;connectés</span></div><a class="avatar-moi" href="#" aria-label="Mon compte">CM</a></div>
+  <details class="menu-mobile"><summary>Menu</summary><nav class="verre"><a href="#" class="actif">Accueil</a><a href="#">Planifiées</a><a href="#">Consommation</a><a href="#">Pôles</a><a href="#">Coffre</a><a href="#">Messagerie</a></nav></details>
+</header>
+
+<main>
+<section class="jour verre">
+  <div class="jour-legende">Situation au mardi trois novembre</div>
+  <h1><span>2 erreurs depuis 24 h</span> <span class="separateur">·</span> <span>3 décisions</span></h1>
+  <p class="jour-etat">Gateway en marche · 3 canaux connectés · <a href="#">1 livraison échouée</a></p>
+  <div class="compteurs"><div><b>2</b><span>erreurs 24 h</span></div><div><b>3</b><span>à décider</span></div><div><b>2</b><span>en cours</span></div></div>
+  <div class="frise"><div class="frise-ligne"></div><span class="frise-point frise-t-120"></span><span class="frise-point echec frise-t-390"></span><span class="frise-point frise-t-720"></span><span class="frise-maintenant frise-t-872"><i>maintenant 14:32</i></span><span class="frise-point prevu frise-t-990"></span><span class="frise-point prevu frise-t-1320"></span></div>
+  <div class="frise-heures"><span>00 h</span><span>06 h</span><span>12 h</span><span>18 h</span><span>24 h</span></div>
+</section>
+
+<section>
+  <h2>Bande intérieure</h2>
+  <p>Variante courte de la bande (<code>bande bande-interieure</code>) : pages intérieures, derrière la barre seule. Une seule bande par page (ici : cadre de démonstration, la vraie bande est en haut de ce spécimen).</p>
+  <div class="spec-cadre"><div class="bande bande-interieure"></div></div>
+</section>
+
+
+<div class="grille-sections">
+  <section>
+    <h2>Couleurs</h2>
+    <div class="spec-nuancier">
+      <div><i class="spec-c-fond"></i><span><b>fond</b>#F5F6FB</span></div>
+      <div><i class="spec-c-indigo"></i><span><b>indigo</b>#253081</span></div>
+      <div><i class="spec-c-encre"></i><span><b>encre</b>#1B1B2F</span></div>
+      <div><i class="spec-c-gris"></i><span><b>gris</b>#4A4B60</span></div>
+      <div><i class="spec-c-filet"></i><span><b>filet</b>#E1E4F1</span></div>
+      <div><i class="spec-c-bande-1"></i><span><b>bande 1</b>#BCCAF4</span></div>
+      <div><i class="spec-c-bande-2"></i><span><b>bande 2</b>#A8BBF0</span></div>
+      <div><i class="spec-c-erreur"></i><span><b>erreur</b>#B02F2F</span></div>
+      <div><i class="spec-c-ok"></i><span><b>ok</b>#14704B</span></div>
+    </div>
+  </section>
+  <section>
+    <h2>Typographie</h2>
+    <div class="ligne"><div class="ligne-texte"><b class="spec-outfit-600">Outfit 600</b><small>Titres, chiffres : 0123456789 (tabulaires)</small></div></div>
+    <div class="ligne"><div class="ligne-texte"><b>Outfit 500 · 16 px — nom d’une ligne</b><small>Outfit 400 · 14 px — détail secondaire</small></div></div>
+    <div class="commande">hermes link --code AB7K-29QX · JetBrains Mono 400</div>
+  </section>
+</div>
+
+<div class="grille-sections">
+  <section>
+    <h2>Liste dense (à décider)</h2>
+    <div class="ligne"><div class="ligne-texte"><b>Exécuter « docker compose pull » sur le serveur de préproduction</b><small>ops · il y a 6 min</small></div><a class="pastille-action plein" href="#">Examiner</a></div>
+    <div class="ligne"><div class="ligne-texte"><b>Écrire dans /data/partage/rapports/</b><small>support · il y a 41 min</small></div><a class="pastille-action" href="#">Examiner</a></div>
+    <div class="ligne"><div class="ligne-texte"><b class="rouge">rapport-hebdo</b><small class="rouge">Livraison échouée</small></div><time>09:15</time></div>
+    <div class="ligne ligne-prochaine"><span class="ligne-heure">16:30</span><div class="ligne-texte"><b>resume-messagerie</b></div><time>dans 2 h</time></div>
+  </section>
+  <section>
+    <h2>Étapes et ordre des sections (§ 11)</h2>
+    <ol class="etapes"><li>Ouvrir un terminal sur la machine à relier.</li><li>Coller la commande.</li><li>Saisir le code d’appairage.</li></ol>
+    <p class="spec-note">Sous 900 px, les classes <code>.s-*</code> fixent l’ordre des sections de l’accueil : réduisez la fenêtre pour voir « Erreurs » passer en tête.</p>
+    <div class="grille-sections spec-ordre">
+      <div class="s-tokens"><h2>Tokens</h2></div><div class="s-prochaines"><h2>Prochaines</h2></div><div class="s-decider"><h2>À décider</h2></div><div class="s-erreurs"><h2>Erreurs</h2></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Histogramme</h2>
+    <div class="chiffre-grand"><b>412 k</b><span>aujourd’hui, hors cache</span></div>
+    <div class="histo"><div><i class="histo-h-76"></i></div><div><i class="histo-h-100"></i></div><div><i class="histo-h-89"></i></div><div><i class="histo-h-57"></i></div><div><i class="histo-h-24"></i></div><div><i class="histo-h-40"></i></div><div><i class="histo-h-81"></i></div></div>
+    <div class="histo-jours"><span>28</span><span>29</span><span>30</span><span>31</span><span>01</span><span>02</span><span>03</span></div>
+    <p class="histo-detail">19 sessions · ≈ 6,80 $</p>
+  </section>
+</div>
+
+<div class="titre-page"><h1>Planifiées</h1><span class="titre-page-sous">14 tâches · 1 suspendue</span></div>
+<div class="liste">
+  <div class="tache tache-entete"><span>Tâche</span><span>Fréquence</span><span>Dernière exécution</span><span>Prochaine</span><span class="tache-actions"></span></div>
+  <div class="tache"><div class="tache-nom"><b>sauvegarde-sessions</b><small>profil ops</small></div><span class="tache-frequence">Chaque nuit à 02:00</span><div class="tache-derniere reussie"><b>Réussie</b><small>03/11 · 02:00</small></div><div class="tache-prochaine"><b>04/11 · 02:00</b></div><span class="tache-actions"><a href="#">Lancer</a><a href="#">Suspendre</a></span></div>
+  <div class="tache"><div class="tache-nom"><b>rapport-hebdo</b><small>profil default</small></div><span class="tache-frequence">Lundi à 09:00</span><div class="tache-derniere echec"><b>Échec</b><small>03/11 · 09:15</small></div><div class="tache-prochaine"><b>10/11 · 09:00</b></div><span class="tache-actions"><a href="#">Lancer</a><a href="#">Suspendre</a></span></div>
+  <div class="tache suspendue"><div class="tache-nom"><b>nettoyage-cache<span class="pastille">suspendue</span></b><small>profil ops</small></div><span class="tache-frequence">Chaque soir à 22:00</span><div class="tache-derniere reussie"><b>Réussie</b><small>28/10 · 22:00</small></div><div class="tache-prochaine"><b>—</b></div><span class="tache-actions"><a href="#">Reprendre</a></span></div>
+</div>
+
+<div class="duo">
+  <div>
+    <div class="section">
+      <h2>Comptes <a class="bouton bouton-fin" href="#">Nouveau compte</a></h2>
+      <div class="compte"><div class="compte-qui"><span class="avatar connecte">TR</span><div><b>Thomas Roche</b><small>thomas.roche@example.org</small></div></div><time class="connecte">connecté</time></div>
+      <div class="compte"><div class="compte-qui"><span class="avatar">ID</span><div><b>Inès Diallo</b><small>ines.diallo@example.org</small></div></div><time>hier, 17:42</time></div>
+    </div>
+    <div class="section">
+      <h2>Mon compte</h2>
+      <div class="fiche-ligne"><span>Nom</span><span>Camille Martin</span><a href="#">Modifier</a></div>
+      <div class="fiche-ligne"><span>Authentification</span><span class="ok">Activée</span><small>depuis le 12/10</small></div>
+    </div>
+    <div class="section">
+      <h2>Formulaires</h2>
+      <form class="formulaire" action="#" onsubmit="return false">
+        <div class="champ"><label for="f1">Adresse e-mail</label><input id="f1" type="email" placeholder="prenom.nom@exemple.fr"><span class="champ-aide">Utilisée pour la connexion.</span></div>
+        <div class="champ erreur"><label for="f2">Mot de passe</label><input id="f2" type="password" value="abc" aria-invalid="true" aria-describedby="e2"><span class="champ-erreur" id="e2">12 caractères au minimum.</span></div>
+        <div class="formulaire-actions"><button class="bouton" type="submit">Se connecter</button><button class="bouton-texte" type="button">Mot de passe oublié</button><button class="bouton-danger" type="button">Supprimer</button><button class="bouton" type="button" disabled>Désactivé</button></div>
+      </form>
+    </div>
+    <div class="section">
+      <h2>États</h2>
+      <div class="etat-vide"><b>Aucune tâche planifiée</b><p>Les tâches créées par les agents apparaîtront ici dès leur première planification.</p><a class="bouton" href="#">Créer une tâche</a></div>
+      <div class="etat-erreur"><b>Hermes ne répond pas</b><p>La dernière réponse date de 14:02. Les données affichées sont figées.</p><a class="bouton-texte" href="#">Réessayer</a></div>
+      <div class="chargement" aria-busy="true" aria-label="Chargement"><i></i><i></i><i></i></div>
+      <p class="flash ok" role="status">Tâche relancée.</p>
+      <p class="flash erreur" role="alert">La livraison a échoué : canal Discord injoignable.</p>
+      <p class="flash" role="status">Modification enregistrée.</p>
+    </div>
+  </div>
+  <aside class="panneau-relie verre">
+    <h2>Hermes relié</h2>
+    <div class="instance"><b>serveur-principal</b><span><span class="ok">En ligne</span> · version 0.14 · vu à l’instant</span></div>
+    <div class="instance"><b>tour-windows</b><span><span class="hors-ligne">Hors ligne</span> · vu hier, 22:10</span></div>
+    <h3>Relier une instance</h3>
+    <ol><li>Installer Hermes sur la machine à relier.</li><li>Lancer la commande ci-dessous.</li><li>Saisir le code d’appairage.</li></ol>
+    <div class="commande">curl -fsSL https://console.exemple.fr/relier | sh</div>
+    <p class="commande-copie"><button type="button" class="bouton-texte">Copier la commande</button></p>
+    <div class="code-appairage"><b>AB7K-29QX</b><span>expire dans 9 min <button type="button" class="bouton-texte">Copier</button></span></div>
+    <div class="etat-vide confirmation-panneau"><b>Délier serveur-principal ?</b><p>Le pont de cette instance cesse d’être accepté immédiatement.</p>
+      <div class="formulaire-actions"><button type="button" class="bouton-danger bouton-danger-plein">Délier</button><button type="button" class="bouton-texte">Annuler</button></div></div>
+  </aside>
+</div>
+</main>
+</div>
+</body>
+</html>

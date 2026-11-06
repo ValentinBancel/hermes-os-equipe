@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+jobs:
+  pont:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'   # version minimale du pont (R1 : stdlib seule)
+      - name: Tests du pont (stdlib, dont « aucun secret dans le dépôt »)
+        run: python3 -m unittest discover -s pont/tests -v
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_sqlite, sqlite3, mbstring, intl
+          coverage: none
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: vendor/bin/pint --test
+      - run: php artisan test
+      - name: Bout en bout du pont distant (console réelle + pont Python, home de démonstration)
+        run: scripts/e2e-pont-distant.sh
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build de l'image de production
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          load: true
+          tags: hermes-os:ci
+
+      - name: Démarrage et healthcheck
+        run: |
+          docker run -d --name hermes-os-ci -p 127.0.0.1:18090:8080 --read-only --tmpfs /tmp \
+            -e APP_KEY="base64:$(head -c32 /dev/urandom | base64)" -e APP_URL=http://127.0.0.1:18090 hermes-os:ci
+          for i in $(seq 1 30); do
+            [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18090/up)" = 200 ] && break; sleep 2
+          done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18090/up)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18090/connexion)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18090/register)" = 404
+          curl -sI http://127.0.0.1:18090/connexion | grep -qi "^content-security-policy: default-src 'self'"
+
+      - name: Kanban et Terminal retirés (404, sans session)
+        run: |
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18090/kanban)" = 404
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18090/terminal)" = 404
+
+      - if: failure()
+        name: Journaux des conteneurs (échec)
+        run: |
+          docker logs hermes-os-ci 2>&1 | tail -80 || true
+
+  # L5 : « Relier un Hermes » de bout en bout sur l'image de production, comme scripts/verifier-clone-neuf.sh :
+  # compte CLI → connexion + enrôlement TOTP → code d'appairage dans Compte → pont `relier` + `distant` sur un
+  # home de démonstration → Compte affiche l'instance « En ligne », l'accueil les données de démonstration.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'   # version minimale du pont
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build de l'image de production
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          load: true
+          tags: hermes-os:e2e
+
+      - name: Console (pilote distant) et compte
+        run: |
+          docker run -d --name hermes-os-e2e -p 127.0.0.1:18090:8080 --read-only --tmpfs /tmp \
+            -e APP_KEY="base64:$(head -c32 /dev/urandom | base64)" -e APP_URL=http://127.0.0.1:18090 \
+            -e SESSION_SECURE_COOKIE=false -e HERMES_PONT_DRIVER=distant hermes-os:e2e
+          for i in $(seq 1 30); do
+            [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18090/up)" = 200 ] && break; sleep 2
+          done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18090/up)" = 200
+          echo "MDP=e2e-$(head -c 24 /dev/urandom | base64 | tr -dc 'A-Za-z0-9')" >> "$GITHUB_ENV"
+
+      - name: Relier un Hermes de bout en bout
+        run: |
+          echo "::add-mask::$MDP"
+          printf '%s\n' "$MDP" | docker exec -i hermes-os-e2e php artisan hermes-os:compte \
+            --email=e2e@example.test --nom=E2E --mot-de-passe-stdin
+          printf '%s\n' "$MDP" | scripts/e2e/relier-console.sh http://127.0.0.1:18090 e2e@example.test ci-demo
+
+      - if: failure()
+        name: Journaux de la console (échec)
+        run: |
+          docker logs hermes-os-e2e 2>&1 | tail -80 || true

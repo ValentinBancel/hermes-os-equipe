@@ -1,0 +1,22 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+node_modules
+vendor
+public/build
+public/hot
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/testing/*
+bootstrap/cache/*.php
+database/*.sqlite*
+.phpunit.cache
+*.log
+# Pont hôte : il tourne sur l'hôte ; seuls ses modules sont servis par la console (L4, R12), pas ses tests.
+pont/tests
+pont/README.md
+__pycache__

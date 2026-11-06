@@ -1,0 +1,25 @@
+/* Mise en page du spécimen seulement (pas un composant) : sortie de specimen.html pour qu'il n'ait ni <style> ni style= (dc L2a M5). */
+.spec-titre { margin-top: 72px; }
+.spec-note { margin-top: 8px; font-size: var(--texte-detail); color: var(--couleur-gris); }
+.spec-nuancier { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; margin-top: 20px; }
+.spec-nuancier div { border: 1px solid var(--couleur-filet); border-radius: var(--rayon-champ); overflow: hidden; font-size: 13px; background: var(--couleur-blanc); }
+.spec-nuancier i { display: block; height: 52px; }
+.spec-nuancier span { display: block; padding: 8px 10px; color: var(--couleur-gris); }
+.spec-nuancier b { display: block; color: var(--couleur-encre); font-weight: 500; }
+.spec-fond-bande { position: relative; padding: 20px; margin-top: 20px; border-radius: var(--rayon-jour); background: linear-gradient(90deg, var(--couleur-bande-1), var(--couleur-bande-2) 50%, var(--couleur-bande-1)); }
+.spec-cadre { position: relative; overflow: hidden; height: 260px; margin-top: 20px; border: 1px solid var(--couleur-filet); border-radius: var(--rayon-jour); }
+.spec-cadre .bande { position: absolute; }
+.spec-ligne { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 20px; }
+/* Pastilles du nuancier (ex-attributs style=, dc L2a M5) */
+.spec-c-fond { background: var(--couleur-fond); }
+.spec-c-indigo { background: var(--couleur-indigo); }
+.spec-c-encre { background: var(--couleur-encre); }
+.spec-c-gris { background: var(--couleur-gris); }
+.spec-c-filet { background: var(--couleur-filet); }
+.spec-c-bande-1 { background: var(--couleur-bande-1); }
+.spec-c-bande-2 { background: var(--couleur-bande-2); }
+.spec-c-erreur { background: var(--couleur-erreur); }
+.spec-c-ok { background: var(--couleur-ok); }
+.ligne-texte b.spec-outfit-600 { font-size: var(--texte-h1-page); font-weight: var(--poids-fort); line-height: 1.1; }
+.spec-ordre { display: flex; flex-direction: column; margin-top: 20px; }
+

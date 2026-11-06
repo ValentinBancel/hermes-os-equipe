@@ -1,0 +1,105 @@
+/*
+ * hermes-os — design system DA-7 « Épure » (Validée le 03/11/2026 : « go code »).
+ * SEULE SOURCE DES JETONS. CSS standard (variables dans :root) : lisible tel quel par un navigateur (specimen.html)
+ * comme par Tailwind 4 (resources/css/app.css : `@import 'tailwindcss';` puis `@import '../../design-system/tokens.css';`
+ * et `@import '../../design-system/composants.css';`). Aucune valeur de couleur en dur ailleurs que dans ce fichier.
+ * Valeurs reprises sans retouche des maquettes da-7-*.html (design-system/maquettes/).
+ * Polices : Outfit (variable, 100-900) pour tout ; JetBrains Mono (400) uniquement pour la commande de liaison.
+ * Auto-hébergées, licence OFL 1.1. Chemins relatifs à ce fichier (Tailwind/Vite les réécrit à l'import).
+ */
+
+@font-face { font-family: "Outfit"; src: url("fonts/outfit-latin-wght.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("fonts/jetbrains-mono-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+:root {
+  /* ---------- Couleurs */
+  --couleur-fond: #F5F6FB;          /* lavande : fond de page, uni */
+  --couleur-bande-1: #BCCAF4;       /* bande en arc : dégradé horizontal bande-1 → bande-2 → bande-1 */
+  --couleur-bande-2: #A8BBF0;
+  --couleur-indigo: #253081;        /* SEUL accent : wordmark, liens d'action, chiffres, bouton primaire, repère */
+  --couleur-encre: #1B1B2F;         /* texte principal */
+  --couleur-gris: #4A4B60;          /* texte secondaire */
+  --couleur-gris-doux: #8A8CA0;     /* ligne suspendue ou compte désactivé */
+  --couleur-gris-point: #B9BBCB;    /* point d'une ligne suspendue */
+  --couleur-gris-bord: #C5C7D6;     /* liseré de la pastille « suspendue » */
+  --couleur-gris-pastille: #6B6D82; /* texte de la pastille « suspendue » */
+  --couleur-filet: #E1E4F1;         /* filets de section et de ligne */
+  --couleur-barre: #C9CEF2;         /* barres de l'histogramme (jours passés) */
+  --couleur-avatar: #EEF0FA;        /* fond d'avatar dans une liste */
+  --couleur-blanc: #FFFFFF;
+  --couleur-erreur: #B02F2F;        /* rouge : erreurs seulement */
+  --couleur-ok: #14704B;            /* vert : « ok » seulement (texte) */
+  --couleur-ok-point: #1F9D6B;      /* vert du point de présence (connecté) */
+
+  /* Teintes d'indigo translucides (sur verre et sur lavande) */
+  --indigo-fond-actif: rgba(37, 48, 129, .13);   /* entrée de nav active */
+  --indigo-fond-doux: rgba(37, 48, 129, .08);    /* entrée du menu mobile active */
+  --indigo-filet-verre: rgba(37, 48, 129, .14);  /* filets à l'intérieur du verre */
+  --indigo-ligne: rgba(37, 48, 129, .2);         /* ligne de la frise */
+  --indigo-contour: rgba(37, 48, 129, .35);      /* contour de la pastille d'action */
+  --indigo-contour-doux: rgba(37, 48, 129, .3);  /* contour du bouton « Menu » */
+  --indigo-halo-avatar: rgba(37, 48, 129, .18);
+
+  /* ---------- Verre (barre haute, bloc du jour, panneau « Hermes relié » — rien d'autre) */
+  --verre-fond: rgba(255, 255, 255, .6);
+  --verre-fond-menu: rgba(255, 255, 255, .92);   /* menu déroulant mobile : plus opaque pour rester lisible */
+  --verre-flou: 20px;
+  --verre-liseré: rgba(255, 255, 255, .85);
+  /* Ni ombre, ni reflet, ni lame. */
+
+  /* ---------- Typographie */
+  --police: "Outfit", system-ui, sans-serif;
+  --police-mono: "JetBrains Mono", ui-monospace, monospace;  /* commande de liaison seulement */
+  --poids-normal: 400;
+  --poids-moyen: 500;
+  --poids-fort: 600;
+  --texte-wordmark: 22px;
+  --texte-h1-jour: 46px;       /* verdict de l'accueil */
+  --texte-h1-page: 40px;       /* titre de page intérieure */
+  --texte-chiffre: 44px;       /* compteurs du bloc du jour */
+  --texte-chiffre-grand: 52px; /* gros chiffre « Tokens » */
+  --texte-code: 30px;          /* code d'appairage */
+  --texte-h2: 22px;
+  --texte-h3: 17px;
+  --texte-base: 16px;
+  --texte-confort: 15px;
+  --texte-detail: 14px;
+  --texte-note: 13.5px;
+  --texte-axe: 13px;
+  --texte-commande: 12.5px;
+  --interligne: 1.45;
+
+  /* ---------- Espacements (échelle de 4) */
+  --espace-1: 4px;
+  --espace-2: 8px;
+  --espace-3: 12px;
+  --espace-4: 16px;
+  --espace-5: 20px;
+  --espace-6: 24px;
+  --espace-8: 32px;
+  --espace-10: 40px;
+  --espace-14: 56px;
+  --espace-16: 64px;
+  --espace-18: 72px;
+  --espace-24: 96px;
+  --conteneur: 1200px;
+  --gouttiere: 24px;           /* 16 px sous 760 px */
+  --colonne-actions: 200px;    /* colonne d'actions des listes de tâches (bureau) : trois libellés sur une ligne */
+  --taille-avatar: 36px;       /* rond d'initiales des comptes */
+  --ecart-avatar: 14px;        /* avatar → nom ; « avatar + écart » aligne un texte sous le nom */
+
+  /* ---------- Rayons */
+  --rayon-champ: 14px;
+  --rayon-menu: 16px;
+  --rayon-barre: 20px;
+  --rayon-panneau-mobile: 22px;
+  --rayon-jour: 28px;          /* bloc du jour et panneau « Hermes relié » */
+  --rayon-pilule: 999px;
+  --rayon-barre-histo: 6px;
+
+  /* ---------- Mouvement */
+  --duree: .15s;
+
+  /* ---------- Focus (absent des maquettes : anneau indigo, sans autre couleur) */
+  --focus-anneau: 0 0 0 2px var(--couleur-fond), 0 0 0 4px var(--couleur-indigo);
+}
